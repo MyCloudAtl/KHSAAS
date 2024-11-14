@@ -1,6 +1,6 @@
 const axios = require('axios');
 
-const endpoint = 'http://localhost:4040/dataset/sparql';
+const endpoint = 'http://localhost:3030/kg';
 
 exports.query = async (sparqlQuery) => {
 
