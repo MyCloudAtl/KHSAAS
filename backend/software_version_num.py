@@ -1,10 +1,8 @@
 import requests
 from urllib.parse import urljoin
-
 import re
-# Define the URL and query parameters
-# url = "http://34.200.228.166:3030/kg/"
-# url = "http://localhost:4040/kg/"
+import json
+
 url = "http://localhost:3030/kg/"
 
 # Define the query
@@ -12,12 +10,16 @@ query = """
 PREFIX sc: <https://w3id.org/secure-chain/>
 PREFIX schema: <http://schema.org/>
 
-SELECT ?softwareVersion ?dependency
+SELECT ?dependency 
 
 WHERE {
-?software a sc:Software .
-?software schema:name "aws-sdk-cpp" .
-?software sc:hasSoftwareVersion ?softwareVersion
+    ?software a sc:Software .
+    ?software schema:name "aws-sdk-cpp" .
+    ?software sc:hasSoftwareVersion ?softwareVersion .
+    ?softwareVersion sc:versionName ?versionName .
+    ?softwareVersion a sc:SoftwareVersion .
+    ?softwareVersion sc:versionName "1.9.22" .
+    ?softwareVersion sc:dependsOn ?dependency .
 }
 """
 
@@ -30,21 +32,32 @@ if response.status_code == 200:
 else:
     print(f"Request failed with status code {response.status_code}: {response.text}")
 
-# GET /versions?software=aws-sdk-cpp
-# ["1.13.0", "1.12.3"]
-
 try:
-    import json
     data = json.loads(response.text)
-    versions = []
+    dependencies = []
     for result in data['results']['bindings']:
-        version_string = result['softwareVersion']['value']
-        # Use regular expression to extract numbers
-        match = re.findall(r'\d+(?:\.\d+)+', version_string)  # Matches one or more digits, followed by zero or more occurrences of ".digits"
+        dependency_uri = result['dependency']['value']
+        match = re.findall(r'\d+(?:\.\d+)+', dependency_uri)
         if match:
-          versions.extend(match)
+            dependencies.extend(match)
+        else:
+            dependencies.append(dependency_uri)
 
-    print(versions)
+    sbom = {
+        "software_name": "aws-sdk-cpp",
+        "software_version": "1.9.22",
+        "dependencies": dependencies
+    }
+
+    # Convert the SBOM dictionary to a JSON string
+    sbom_json = json.dumps(sbom, indent=4)
+
+    # Save the JSON string to a file
+    with open("sbom.json", "w") as file:
+        file.write(sbom_json)
+
+    print("SBOM saved to sbom.json")
+    print(sbom_json)
 except (json.JSONDecodeError, KeyError) as e:
     print(f"Error processing JSON response: {e}")
     print(f"Response text was: {response.text}")

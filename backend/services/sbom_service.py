@@ -29,8 +29,8 @@ class SBOMService:
         print("Dependencies Query:", dependencies_query)
         dependencies_response = self.sparql_client.query(dependencies_query)
 
-        if not isinstance(dependencies_response, list):
-            return []
+        # if not isinstance(dependencies_response, list):
+        #     return []
         return [str(row['dependency']) for row in dependencies_response]
     
     def get_vulnerabilities(self, software_name, software_version):
