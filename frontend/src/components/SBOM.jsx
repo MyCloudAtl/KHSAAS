@@ -1,5 +1,5 @@
-import React, { useState } from "react";
-import axios from 'axios';
+import React, { useState, useEffect } from "react";
+// import axios from 'axios';
 
 
 //example sheet, need to perfect fetches and how datd is displayed look at return for what SBOM will return....should we add anything else?
@@ -10,7 +10,7 @@ const SBOM = () => {
     const [selectedSoftware, setSelectedSoftware] = useState('');
     const [selectedVersion, setSelectedVersion] = useState('');
     const [sbomData, setSbomData] = useState(null)
-    const navigate = useNavigate();
+    // const navigate = useNavigate();
 
   useEffect(() => {
     const fetchSoftwares = async () => {
