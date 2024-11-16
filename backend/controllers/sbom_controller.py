@@ -14,3 +14,5 @@ def get_sbom_controller():
 
     sbom = sbom_service.get_sbom()
     return jsonify(sbom)
+
+    

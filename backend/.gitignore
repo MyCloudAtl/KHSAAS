@@ -6,6 +6,11 @@ __pycache__/
 # C extensions
 *.so
 
+
+# softwarea_version_num.py
+software_version_num.py
+
+
 # Distribution / packaging
 .Python
 build/
@@ -96,12 +101,9 @@ celerybeat.pid
 
 # Environments
 .env
-.venv
 env/
-venv/
 ENV/
 env.bak/
-venv.bak/
 
 # Spyder project settings
 .spyderproject
@@ -128,8 +130,7 @@ dmypy.json
 .idea/
 
 # Local virtual environments
-venv/
+
 ENV/
 env/
 env.bak/
-venv.bak/
