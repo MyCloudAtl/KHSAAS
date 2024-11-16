@@ -25,9 +25,18 @@ def dependencies_query():
     return query
 
 
-query = dependencies_query()
+def vulnerabilities_query():
+    query = """ """ # Add the SPARQL query here
+
+    return query
+
+
+dependency_query = dependencies_query()
+vulnerability_query = vulnerabilities_query()
 # Make the POST request with the query string
-response = requests.post(url, data={"query": query})
+response = requests.post(url, data={"query": dependencies_query})
+response = requests.post(url, data={"query": vulnerability_query})
+
 
 # Check if the response was successful
 if response.status_code == 200:
