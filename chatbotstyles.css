@@ -1,0 +1,117 @@
+.container {
+    display: flex;
+    align-items: flex-start;
+    padding: 10px;
+    gap: 10px;
+    font-family: Arial, sans-serif;
+    height: 100vh;
+    box-sizing: border-box;
+  }
+  
+  /* Chatbox styling */
+  .chatbox {
+    width: 30%;
+    height: 400px;
+    border: 1px solid #007bff;
+    border-radius: 8px;
+    display: flex;
+    flex-direction: column;
+    background-color: #f9f9f9;
+    overflow: hidden;
+  }
+  
+  #chat-messages {
+    flex-grow: 1;
+    padding: 10px;
+    overflow-y: auto;
+    scroll-behavior: smooth;
+    max-height: 320px;
+  }
+  
+  .message {
+    margin: 5px 0;
+    padding: 8px 12px;
+    border-radius: 6px;
+    max-width: 75%;
+    font-size: 0.9em;
+  }
+  
+  /* User messages */
+  .message.user {
+    background-color: #007bff;
+    color: white;
+    align-self: flex-end;
+  }
+  
+  /* Bot messages */
+  .message.bot {
+    background-color: #e0e0e0;
+    color: #333;
+    align-self: flex-start;
+  }
+  
+  /* User input section styling */
+  .user-input-section {
+    display: flex;
+    border-top: 1px solid #ccc;
+  }
+  
+  #user-input {
+    padding: 10px;
+    border: none;
+    font-size: 1em;
+    outline: none;
+    width: 80%;
+    border-radius: 0 0 0 8px;
+  }
+  
+  button {
+    padding: 10px;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    font-size: 1em;
+    width: 20%;
+    cursor: pointer;
+    border-radius: 0 0 8px 0;
+  }
+  
+  button:hover {
+    background-color: #0056b3;
+  }
+  
+  /* Bot input section styling */
+  .bot-input-section {
+    display: flex;
+    padding: 10px;
+  }
+  
+  #bot-input {
+    padding: 10px;
+    border: 1px solid #ccc;
+    font-size: 1em;
+    outline: none;
+    width: 100%;
+    border-radius: 8px;
+    background-color: #f0f0f0;
+    color: #888;
+  }
+  
+  /* Graph area styling */
+  .graph-area {
+    width: 65%;
+    height: 90vh;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    background-color: #fafafa;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 10px;
+    box-sizing: border-box;
+  }
+  
+  canvas {
+    width: 100%;
+    height: 100%;
+  }
