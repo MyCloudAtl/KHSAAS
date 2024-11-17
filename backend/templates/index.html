@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>SBOM Generator</title>
+    <script>
+        function updateVersions() {
+            const softwareName = document.getElementById('software_name').value;
+            const versionDropdown = document.getElementById('software_version');
+
+            // Clear existing options
+            versionDropdown.innerHTML = "";
+
+            if (softwareName) {
+                fetch(`/get_versions?name=${encodeURIComponent(softwareName)}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        data.forEach(version => {
+                            const option = document.createElement('option');
+                            option.value = version;
+                            option.textContent = version;
+                            versionDropdown.appendChild(option);
+                        });
+                    })
+                    .catch(error => console.error('Error fetching versions:', error));
+            }
+        }
+
+        function generateSBOM() {
+            const softwareName = document.getElementById('software_name').value;
+            const softwareVersion = document.getElementById('software_version').value;
+
+            if (!softwareName || !softwareVersion) {
+                alert("Please select both a product and a version.");
+                return;
+            }
+
+            fetch('/api/sbom', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ name: softwareName, version: softwareVersion })
+            })
+            .then(response => response.json())
+            .then(data => {
+                const sbomDisplay = document.getElementById('sbom-display');
+                const sbomContent = document.getElementById('sbom-content');
+                sbomDisplay.style.display = 'block';
+                sbomContent.textContent = JSON.stringify(data, null, 2); // Format as JSON
+            })
+            .catch(error => {
+                console.error('Error generating SBOM:', error);
+                alert("An error occurred while generating the SBOM.");
+            });
+        }
+    </script>
+</head>
+<body>
+    <h1>Generate Software Bill of Materials</h1>
+    <form id="sbom-form">
+        <label for="software_name">Software Name:</label>
+        <select id="software_name" name="name" onchange="updateVersions()">
+            <option value="">Select a Product</option>
+            {% for product, versions in products.items() %}
+                <option value="{{ product }}">{{ product }}</option>
+            {% endfor %}
+        </select>
+        <br><br>
+
+        <label for="software_version">Software Version:</label>
+        <select id="software_version" name="version">
+            <option value="">Select a Version</option>
+        </select>
+        <br><br>
+
+        <button type="button" onclick="generateSBOM()">Generate SBOM</button>
+    </form>
+
+    <div id="sbom-display" style="margin-top: 20px; display: none;">
+        <h2>Generated SBOM:</h2>
+        <pre id="sbom-content"></pre>
+    </div>
+</body>
+</html>
