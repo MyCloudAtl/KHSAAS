@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate, useLocation, Link } from "react-router-dom";
-// import axios from 'axios';
+import axios from 'axios';
 
 const SBOM = () => {
     const [softwares, setSoftwares] = useState([]);
@@ -9,6 +9,7 @@ const SBOM = () => {
     const [selectedVersion, setSelectedVersion] = useState('');
     const [sbomData, setSbomData] = useState(null);
     const [searchQuery, setSearchQuery] = useState('');
+    const [showSoftwareList, setShowSoftwareList] = useState(false);
     const navigate = useNavigate();
     const location = useLocation();
 
@@ -16,14 +17,19 @@ const SBOM = () => {
     useEffect(() => {
         const fetchSoftwares = async () => {
             try {
-                const response = await axios.get('http://localhost:5000/softwares');
-                setSoftwares(response.data);
+                const response = await axios.get('http://localhost:5000/api/softwares');
+                const softwares = Object.keys(response.data).map((key) => ({
+                    name: key,
+                    versions: response.data[key],
+                }));
+                setSoftwares(softwares);
             } catch (error) {
                 console.error('Error fetching software list:', error);
             }
         };
         fetchSoftwares();
     }, []);
+    
 
     // Fetch software versions when a software is selected
     useEffect(() => {
@@ -66,13 +72,15 @@ const SBOM = () => {
     const handleSearchChange = (e) => {
         const query = e.target.value;
         setSearchQuery(query);
+        setShowSoftwareList(query.length > 0); // Show the software list when typing
         navigate(`?search=${query}`);
     };
 
-    const handleSoftwareChange = (e) => {
-        setSelectedSoftware(e.target.value);
+    const handleSoftwareChange = (softwareId) => {
+        setSelectedSoftware(softwareId);
         setSelectedVersion('');
-        setSbomData(null); // Reset SBOM data
+        setSbomData(null); 
+        setShowSoftwareList(false); 
     };
 
     const handleVersionChange = (e) => {
@@ -83,10 +91,9 @@ const SBOM = () => {
         navigate('/');
     };
 
-    // Filter software list based on search query
     const filteredSoftwares = softwares.filter((software) =>
         software.name.toLowerCase().includes(searchQuery.toLowerCase())
-    );
+    );    
 
     return (
         <div className="sbom-container">
@@ -102,25 +109,44 @@ const SBOM = () => {
                     value={searchQuery}
                     onChange={handleSearchChange}
                     placeholder="Search software..."
+                    onFocus={() => setShowSoftwareList(true)} 
+                    onBlur={() => setTimeout(() => setShowSoftwareList(false), 200)} 
                 />
+                {/* Software List Dropdown */}
+                {showSoftwareList && searchQuery && (
+                    <ul className="software-list-dropdown">
+                        {filteredSoftwares.length > 0 ? (
+                            filteredSoftwares.map((software) => (
+                                <li
+                                    key={software.id}
+                                    onClick={() => handleSoftwareChange(software.id)}
+                                >
+                                    {software.name}
+                                </li>
+                            ))
+                        ) : (
+                            <li>No matching software found</li>
+                        )}
+                    </ul>
+                )}
             </div>
 
             <div className="selection-container">
                 <div className="form-group">
                     <label htmlFor="softwareName">Select Software</label>
                     <select
-                        id="softwareName"
-                        value={selectedSoftware}
-                        onChange={handleSoftwareChange}
-                        required
+                    id="softwareName"
+                    value={selectedSoftware}
+                    onChange={handleSoftwareChange}
+                    required
                     >
-                        <option value="">Select Software</option>
-                        {filteredSoftwares.map((software) => (
-                            <option key={software.id} value={software.id}>
-                                {software.name}
-                            </option>
-                        ))}
-                    </select>
+                     <option value="">Select Software</option>
+                    {filteredSoftwares.map((software) => (
+                    <option key={software.name} value={software.name}>
+            {software.name}
+        </option>
+    ))}
+</select>
                 </div>
 
                 {selectedSoftware && (
