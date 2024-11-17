@@ -80,7 +80,7 @@ class SBOMService:
             relation_results = self.extract_relations(ner_results)
             sbom['enrichedData'] = relation_results
 
-            return sbom
+            return json.dumps(sbom)
         except Exception as e:
             logging.error(f"Error generating SBOM: {e}", exc_info=True)
             return {}

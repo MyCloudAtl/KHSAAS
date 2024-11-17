@@ -3,6 +3,7 @@ from utils.sparql_client import SPARQLClient
 from routes.sbom_routes import sbom_bp
 from services.sbom_service import SBOMService 
 from utils.data_loader import load_products
+from flask_cors import CORS
 
 # Load the products from the CSV
 products_df = load_products('data/products_versions.csv').drop_duplicates(subset=['product', 'version'])
@@ -10,6 +11,7 @@ products_df2 = products_df.iloc[0:1000]
 grouped_products = products_df2.groupby('product')['version'].apply(list).to_dict()
 
 app = Flask(__name__)
+CORS(app)
 
 # Existing SPARQL client setup
 SPARQL_ENDPOINT_URL = 'http://localhost:3030/kg/query'
@@ -26,6 +28,10 @@ sbom_service = SBOMService(sparql_client)
 @app.route('/')
 def home():
     return render_template('index.html', products=grouped_products)
+
+@app.route('/api/softwares', methods=['GET'])
+def get_softwares():
+    return jsonify(grouped_products)
 
 @app.route('/get_versions', methods=['GET'])
 def get_versions():
