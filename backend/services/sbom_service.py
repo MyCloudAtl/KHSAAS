@@ -4,6 +4,7 @@ from models.ner_model import identify_entities
 from models.relation_extraction_model import extract_relations
 # import requests
 import json
+import re
 
 # Configure logging
 logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
@@ -21,7 +22,7 @@ class SBOMService:
         PREFIX sc: <https://w3id.org/secure-chain/>
         PREFIX schema: <http://schema.org/>
 
-        SELECT ?dependency 
+        SELECT ?dependency
         WHERE {{
             ?software a sc:Software .
             ?software schema:name "{software_name}" .
@@ -30,11 +31,17 @@ class SBOMService:
             ?softwareVersion sc:dependsOn ?dependency .
         }}
         """
+        logging.debug(f"Generated query: {query}")
         logging.debug(f"Querying dependencies for \"{software_name}\" version \"{software_version}\"")
         try:
             results = self.sparql_client.query(query)
             if results and 'results' in results and 'bindings' in results['results']:
-                dependencies = [binding['dependency']['value'] for binding in results['results']['bindings']]
+                dependencies = []
+                for binding in results['results']['bindings']:
+                    dependency_url = binding['dependency']['value']
+                    match = re.findall(r'[^/]+$', dependency_url)  # Extract the last part of the URL
+                    if match:
+                        dependencies.append(match[0])
                 logging.debug(f"Dependencies found: {dependencies}")
                 return dependencies
             else:
