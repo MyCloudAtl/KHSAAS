@@ -20,6 +20,11 @@ SPARQL_UPDATE_ENDPOINT_URL = 'http://localhost:3030/kg/update'
 sparql_client = SPARQLClient(SPARQL_ENDPOINT_URL, SPARQL_UPDATE_ENDPOINT_URL)
 app.config['sparql_client'] = sparql_client
 
+if sparql_client.test_connection():
+    print("Connection to SPARQL endpoint successful.")
+else:
+    print("Connection to SPARQL endpoint failed.")
+
 # Register blueprints
 app.register_blueprint(sbom_bp, url_prefix='/sbom')
 
