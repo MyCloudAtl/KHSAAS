@@ -179,7 +179,12 @@ const SBOM = () => {
 
             {sbomData && (
                 <div className="sbom-data">
-                    <h3>SBOM Data for {selectedSoftware} - {selectedVersion}</h3>
+        <h3>SBOM Data for {selectedSoftware} - {selectedVersion}</h3>
+        <p><strong>Dependencies:</strong> {sbomData.dependencies.join(', ')}</p>
+        <p><strong>Vulnerabilities:</strong> {sbomData.vulnerabilities.join(', ')}</p>
+        <p><strong>Enriched Data:</strong> {JSON.stringify(sbomData.enrichedData)}</p>
+
+                    {/* <h3>SBOM Data for {selectedSoftware} - {selectedVersion}</h3>
                     <p><strong>Vulnerability:</strong> {sbomData.vulnerability}</p>
                     <p><strong>Hardware:</strong> {sbomData.hardwareName}</p>
                     <p><strong>Hardware Version:</strong> {sbomData.hardwareVersion}</p>
@@ -190,7 +195,7 @@ const SBOM = () => {
                     <p><strong>Person Name:</strong> {sbomData.personName}</p>
                     <p><strong>Vulnerability Type:</strong> {sbomData.vulnerabilityType}</p>
                     <p><strong>Details:</strong> {sbomData.intangible}</p>
-                    <p><strong>Description:</strong> {sbomData.description}</p>
+                    <p><strong>Description:</strong> {sbomData.description}</p> */}
                 </div>
             )}
         </div>
