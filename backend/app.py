@@ -1,4 +1,4 @@
-from flask import Flask, request, render_template, jsonify
+from flask import Flask, request, render_template, jsonify, abort
 from utils.sparql_client import SPARQLClient
 from routes.sbom_routes import sbom_bp
 from services.sbom_service import SBOMService 
@@ -14,10 +14,15 @@ app = Flask(__name__)
 CORS(app)
 
 # Existing SPARQL client setup
-SPARQL_ENDPOINT_URL = 'http://localhost:3030/kg/query'
+SPARQL_ENDPOINT_URL = 'http://localhost:3030/kg'
 SPARQL_UPDATE_ENDPOINT_URL = 'http://localhost:3030/kg/update'
 sparql_client = SPARQLClient(SPARQL_ENDPOINT_URL, SPARQL_UPDATE_ENDPOINT_URL)
 app.config['sparql_client'] = sparql_client
+
+if sparql_client.test_connection():
+    print("Connection to SPARQL endpoint successful.")
+else:
+    print("Connection to SPARQL endpoint failed.")
 
 # Register blueprints
 app.register_blueprint(sbom_bp, url_prefix='/sbom')
@@ -68,7 +73,6 @@ def api_get_vulnerabilities():
     software_version = request.args.get('version')
     vulnerabilities = sbom_service.get_vulnerabilities(software_name, software_version)
     return jsonify(vulnerabilities)
-
 
 
 @app.route('/api/sbom', methods=['POST'])
