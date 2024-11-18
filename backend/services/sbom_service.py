@@ -2,7 +2,7 @@ import logging
 from rdflib import Namespace
 from models.ner_model import identify_entities
 from models.relation_extraction_model import extract_relations
-import requests
+# import requests
 import json
 
 # Configure logging

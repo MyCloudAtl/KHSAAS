@@ -14,13 +14,7 @@ def get_sbom_controller():
     if not software_name or not software_version:
         return jsonify({"error": "Missing required parameters"}), 400
 
-<<<<<<< HEAD
-    # Retrieve the SBOM using the service
-    sbom = sbom_service.get_sbom(software_name, software_version)
-    return jsonify(sbom)
-=======
     sbom = sbom_service.get_sbom()
     return jsonify(sbom)
 
     
->>>>>>> e2ca20bb1ef4519e6fffb812a96e692e19f820a3

@@ -1,4 +1,4 @@
-from flask import Flask, request, render_template, jsonify
+from flask import Flask, request, render_template, jsonify, abort
 from utils.sparql_client import SPARQLClient
 from routes.sbom_routes import sbom_bp
 from services.sbom_service import SBOMService 
