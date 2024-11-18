@@ -38,6 +38,14 @@ def get_versions_for_software(software_name):
     versions = grouped_products.get(software_name, [])
     return jsonify(versions)
 
+
+@app.route('/api/sbom/<software_name>/<software_version>', methods=['GET'])
+def get_sbom(software_name, software_version):
+    # Generate the SBOM using the provided software name and version
+    sbom = sbom_service.get_sbom(software_name, software_version)
+    return jsonify(sbom)
+
+
 @app.route('/get_versions', methods=['GET'])
 def get_versions():
     # Retrieve product name from query parameters
