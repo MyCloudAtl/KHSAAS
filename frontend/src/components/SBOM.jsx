@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { useNavigate, useLocation, Link } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import axios from 'axios';
 
 const SBOM = () => {
@@ -37,6 +37,7 @@ const SBOM = () => {
             const fetchSoftwareVersions = async () => {
                 try {
                     const response = await axios.get(`http://localhost:5000/api/softwares/${selectedSoftware}/versions`);
+                    console.log('Fetched versions:', response.data);
                     setSoftwareVersions(response.data);
                 } catch (error) {
                     console.error('Error fetching software versions:', error);
@@ -72,16 +73,24 @@ const SBOM = () => {
     const handleSearchChange = (e) => {
         const query = e.target.value;
         setSearchQuery(query);
-        setShowSoftwareList(query.length > 0); // Show the software list when typing
+        setShowSoftwareList(query.length > 0); 
         navigate(`?search=${query}`);
     };
 
-    const handleSoftwareChange = (softwareId) => {
-        setSelectedSoftware(softwareId);
-        setSelectedVersion('');
-        setSbomData(null); 
-        setShowSoftwareList(false); 
+    // const handleSoftwareChange = (softwareName) => {
+    //     setSelectedSoftware(softwareName);
+    //     setSelectedVersion('');
+    //     setSbomData(null); 
+    //     setShowSoftwareList(false); 
+    // };
+
+    
+    const handleSoftwareChange = (softwareName) => {
+        setSelectedSoftware(softwareName); 
+        setSelectedVersion(''); 
+        setSbomData(null);
     };
+    
 
     const handleVersionChange = (e) => {
         setSelectedVersion(e.target.value);
@@ -115,19 +124,19 @@ const SBOM = () => {
                 {/* Software List Dropdown */}
                 {showSoftwareList && searchQuery && (
                     <ul className="software-list-dropdown">
-                        {filteredSoftwares.length > 0 ? (
-                            filteredSoftwares.map((software) => (
-                                <li
-                                    key={software.id}
-                                    onClick={() => handleSoftwareChange(software.id)}
-                                >
-                                    {software.name}
-                                </li>
-                            ))
-                        ) : (
-                            <li>No matching software found</li>
-                        )}
-                    </ul>
+                    {filteredSoftwares.length > 0 ? (
+                        filteredSoftwares.map((software, index) => (
+                            <li
+                                key={software.name + index}  // Ensures a unique key
+                                onClick={() => handleSoftwareChange(software.name)} 
+                            >
+                                {software.name}
+                            </li>
+                        ))
+                    ) : (
+                        <li>No matching software found</li>
+                    )}
+                </ul>
                 )}
             </div>
 
@@ -135,18 +144,18 @@ const SBOM = () => {
                 <div className="form-group">
                     <label htmlFor="softwareName">Select Software</label>
                     <select
-                    id="softwareName"
-                    value={selectedSoftware}
-                    onChange={handleSoftwareChange}
-                    required
+                        id="softwareName"
+                        value={selectedSoftware}
+                        onChange={(e) => handleSoftwareChange(e.target.value)}
+                        required
                     >
-                     <option value="">Select Software</option>
-                    {filteredSoftwares.map((software) => (
-                    <option key={software.name} value={software.name}>
-            {software.name}
-        </option>
-    ))}
-</select>
+                        <option value="">Select Software</option>
+                        {filteredSoftwares.map((software, index) => (
+                            <option key={software.name + index} value={software.name}>
+                                {software.name}
+                            </option>
+                        ))}
+                    </select>
                 </div>
 
                 {selectedSoftware && (
@@ -160,8 +169,8 @@ const SBOM = () => {
                         >
                             <option value="">Select Version</option>
                             {softwareVersions.map((version) => (
-                                <option key={version.id} value={version.id}>
-                                    {version.versionName}
+                                <option key={version} value={version}>
+                                    {version}
                                 </option>
                             ))}
                         </select>
@@ -190,4 +199,6 @@ const SBOM = () => {
 };
 
 export default SBOM;
+
+
 
