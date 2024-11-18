@@ -24,6 +24,17 @@ def dependencies_query():
     """
     return query
 
+def send_query(query):
+    headers = {
+        'Content-Type': 'application/sparql-query',
+        'Accept': 'application/sparql-results+json'
+    }
+    response = requests.post(url, data=query, headers=headers)
+    if response.status_code == 200:
+        return response.json()
+    else:
+        print(f"Request failed with status code {response.status_code}: {response.text}")
+        return None
 
 def vulnerabilities_query():
     query = """ """ # Add the SPARQL query here
@@ -57,7 +68,7 @@ try:
 
     sbom = {
         "software_name": "aws-sdk-cpp",
-        "software_version": "1.9.22",
+        "software_version": "1.9.376",
         "dependencies": dependencies
     }
 
