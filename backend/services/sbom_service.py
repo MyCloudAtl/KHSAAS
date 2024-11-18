@@ -30,14 +30,18 @@ class SBOMService:
             ?softwareVersion sc:dependsOn ?dependency .
         }}
         """
-        logging.debug(f"Querying dependencies for {software_name} version {software_version}")
-        results = self.sparql_client.query(query)
-        if results and 'results' in results and 'bindings' in results['results']:
-            dependencies = [binding['dependency']['value'] for binding in results['results']['bindings']]
-            logging.debug(f"Dependencies found: {dependencies}")
-            return dependencies
-        else:
-            logging.debug("No dependencies found.")
+        logging.debug(f"Querying dependencies for \"{software_name}\" version \"{software_version}\"")
+        try:
+            results = self.sparql_client.query(query)
+            if results and 'results' in results and 'bindings' in results['results']:
+                dependencies = [binding['dependency']['value'] for binding in results['results']['bindings']]
+                logging.debug(f"Dependencies found: {dependencies}")
+                return dependencies
+            else:
+                logging.debug("No dependencies found.")
+                return []
+        except Exception as e:
+            logging.error(f"Error executing query: {e}")
             return []
 
     def get_vulnerabilities(self, software_name, software_version):
