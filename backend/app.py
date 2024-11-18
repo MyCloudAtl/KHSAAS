@@ -1,4 +1,5 @@
-from flask import Flask, request, render_template, jsonify
+import logging
+from flask import Flask, request, render_template, jsonify, abort
 from utils.sparql_client import SPARQLClient
 from routes.sbom_routes import sbom_bp
 from services.sbom_service import SBOMService 
@@ -14,7 +15,7 @@ app = Flask(__name__)
 CORS(app)
 
 # Existing SPARQL client setup
-SPARQL_ENDPOINT_URL = 'http://localhost:3030/kg/query'
+SPARQL_ENDPOINT_URL = 'http://localhost:3030/kg'
 SPARQL_UPDATE_ENDPOINT_URL = 'http://localhost:3030/kg/update'
 sparql_client = SPARQLClient(SPARQL_ENDPOINT_URL, SPARQL_UPDATE_ENDPOINT_URL)
 app.config['sparql_client'] = sparql_client
@@ -42,9 +43,12 @@ def get_versions_for_software(software_name):
 @app.route('/api/sbom/<software_name>/<software_version>', methods=['GET'])
 def get_sbom(software_name, software_version):
     # Generate the SBOM using the provided software name and version
-    sbom = sbom_service.get_sbom(software_name, software_version)
-    return jsonify(sbom)
-
+    try:
+        sbom_data = sbom_service.get_sbom(software_name, software_version)
+        return jsonify(sbom_data)
+    except Exception as e:
+        logging.error(f"Error generating SBOM: {e}")
+        return jsonify({"error": "Unable to generate SBOM"}), 500
 
 @app.route('/get_versions', methods=['GET'])
 def get_versions():
@@ -69,10 +73,8 @@ def api_get_vulnerabilities():
     vulnerabilities = sbom_service.get_vulnerabilities(software_name, software_version)
     return jsonify(vulnerabilities)
 
-
-
 @app.route('/api/sbom', methods=['POST'])
-def api_get_sbom():
+def api_post_sbom():
     data = request.get_json()
     software_name = data.get('name')
     software_version = data.get('version')
