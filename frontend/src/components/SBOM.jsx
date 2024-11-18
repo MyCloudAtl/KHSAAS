@@ -127,7 +127,7 @@ const SBOM = () => {
                     {filteredSoftwares.length > 0 ? (
                         filteredSoftwares.map((software, index) => (
                             <li
-                                key={software.name + index}  // Ensures a unique key
+                                key={index}  // Ensures a unique key
                                 onClick={() => handleSoftwareChange(software.name)} 
                             >
                                 {software.name}
@@ -151,7 +151,7 @@ const SBOM = () => {
                     >
                         <option value="">Select Software</option>
                         {filteredSoftwares.map((software, index) => (
-                            <option key={software.name + index} value={software.name}>
+                            <option key={index} value={software.name}>
                                 {software.name}
                             </option>
                         ))}
@@ -165,11 +165,10 @@ const SBOM = () => {
                             id="softwareVersion"
                             value={selectedVersion}
                             onChange={handleVersionChange}
-                            required
                         >
                             <option value="">Select Version</option>
-                            {softwareVersions.map((version) => (
-                                <option key={version} value={version}>
+                            {softwareVersions.map((version, index) => (
+                                <option key={index} value={version}>
                                     {version}
                                 </option>
                             ))}
