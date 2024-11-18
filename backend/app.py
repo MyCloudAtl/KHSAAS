@@ -33,6 +33,11 @@ def home():
 def get_softwares():
     return jsonify(grouped_products)
 
+@app.route('/api/softwares/<software_name>/versions', methods=['GET'])
+def get_versions_for_software(software_name):
+    versions = grouped_products.get(software_name, [])
+    return jsonify(versions)
+
 @app.route('/get_versions', methods=['GET'])
 def get_versions():
     # Retrieve product name from query parameters
