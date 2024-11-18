@@ -73,7 +73,7 @@ const SBOM = () => {
     const handleSearchChange = (e) => {
         const query = e.target.value;
         setSearchQuery(query);
-        setShowSoftwareList(query.length > 0); // Show the software list when typing
+        setShowSoftwareList(query.length > 0); 
         navigate(`?search=${query}`);
     };
 
@@ -86,9 +86,9 @@ const SBOM = () => {
 
     
     const handleSoftwareChange = (softwareName) => {
-        setSelectedSoftware(softwareName); // Update selected software
-        setSelectedVersion(''); // Reset version
-        setSbomData(null); // Reset SBOM data
+        setSelectedSoftware(softwareName); 
+        setSelectedVersion(''); 
+        setSbomData(null);
     };
     
 
