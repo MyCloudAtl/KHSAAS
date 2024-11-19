@@ -1,7 +1,8 @@
 import requests
 import os
 
-BASE = ""
+#TODO: Use backend methods directly
+BASE = "http://localhost:5000"
 
 SOFTWARE_LIST= "/api/softwares"
 SOFTWARE_VERSIONS = "/get_versions"
