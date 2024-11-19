@@ -1,4 +1,5 @@
 import requests
+import os
 
 BASE = "http://localhost:5055"
 
@@ -43,7 +44,7 @@ class Classification(BaseModel):
     )
 
 # Define output
-class Software(BaseModel):
+class SoftwareQuery(BaseModel):
     name: str
     version: str
     intent: Classification
@@ -66,16 +67,18 @@ def user_intent(query):
                 "content": query,
             }
         ],
-        response_model=Software,
+        response_model=SoftwareQuery,
     )
 
 def handle_intent(query):
-    intent = user_intent(query)
-    name = intent.name
-    version = intent.version
+    response = user_intent(query)
+    print(response)
+    # print(f"Name:{res.name}\nVersion:{res.version}\nIntent:{res.intent.label}")
+    name = response.name
+    version = response.version
 
     # Get user intent classification
-    match intent.Classification.label:
+    match response.intent.label:
         case "SOFTWARE_LIST":
             response = requests.get(BASE + SOFTWARE_LIST)
             return response.json()
@@ -108,4 +111,4 @@ def handle_intent(query):
             return response.json()
             
         case _:
-            raise ValueError(f"Unknown intent: {intent.Classification.label}")
+            raise ValueError(f"Unknown intent: {response.intent.chain_of_thought}")

@@ -5,6 +5,7 @@ from routes.sbom_routes import sbom_bp
 from services.sbom_service import SBOMService 
 from utils.data_loader import load_products
 from flask_cors import CORS
+from llm.intent import handle_intent, SoftwareQuery
 
 # Load the products from the CSV
 products_df = load_products('data/products_versions.csv').drop_duplicates(subset=['product', 'version'])
@@ -89,6 +90,14 @@ def api_post_sbom():
     # Generate the SBOM using the provided software name and version
     sbom = sbom_service.get_sbom(software_name, software_version)
     return jsonify(sbom)
+
+@app.route('/api/chat', methods=['POST'])
+def api_post_chat():
+    data = request.get_json()
+    user_query = data.get('query')
+    
+    response = handle_intent(user_query)
+    return jsonify(response)
 
 if __name__ == '__main__':
     app.run(debug=True)
