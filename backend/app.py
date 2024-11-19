@@ -7,6 +7,8 @@ from routes.sbom_routes import sbom_bp
 from services.sbom_service import SBOMService 
 from utils.data_loader import load_products
 from flask_cors import CORS
+from llm.intent import handle_intent, SoftwareQuery
+import os
 
 # Load the products from the CSV
 products_df = load_products('data/products_versions.csv').drop_duplicates(subset=['product', 'version'])
@@ -16,9 +18,14 @@ grouped_products = products_df2.groupby('product')['version'].apply(list).to_dic
 app = Flask(__name__)
 CORS(app)
 
+# Read environment variables from .env file
+base_url = os.getenv('BASE_URL', 'http://localhost:3030')
+
 # Existing SPARQL client setup
-SPARQL_ENDPOINT_URL = 'http://localhost:3030/kg/'
-SPARQL_UPDATE_ENDPOINT_URL = 'http://localhost:3030/kg/update'
+SPARQL_ENDPOINT_URL = base_url + '/kg/'
+SPARQL_UPDATE_ENDPOINT_URL = base_url + '/kg/update'
+print(f"SPARQL endpoint is {SPARQL_ENDPOINT_URL}")
+
 sparql_client = SPARQLClient(SPARQL_ENDPOINT_URL, SPARQL_UPDATE_ENDPOINT_URL)
 app.config['sparql_client'] = sparql_client
 
@@ -85,13 +92,24 @@ def api_get_vulnerabilities():
 @app.route('/api/sbom', methods=['POST'])
 def api_post_sbom():
     data = request.get_json()
-    software_name = data.get('name')
-    software_version = data.get('version')
+    software_name = request.args.get('name')
+    software_version = request.args.get('version')
     if not software_name or not software_version:
         return jsonify({"error": "Missing required parameters"}), 400
+    try:
+    # Generate the SBOM using the provided software name and version
+        sbom = sbom_service.get_sbom(software_name, software_version)
+        return jsonify(sbom)
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
-    sbom = sbom_service.get_sbom(software_name, software_version)
-    return jsonify(sbom)
+@app.route('/api/chat', methods=['POST'])
+def api_post_chat():
+    data = request.get_json()
+    user_query = data.get('query')
+    
+    response = handle_intent(user_query)
+    return jsonify(response)
 
 if __name__ == '__main__':
     app.run(debug=True)
