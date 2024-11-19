@@ -7,7 +7,7 @@ const SBOM = () => {
     const [softwareVersions, setSoftwareVersions] = useState([]);
     const [selectedSoftware, setSelectedSoftware] = useState('');
     const [selectedVersion, setSelectedVersion] = useState('');
-    const [sbomData, setSbomData] = useState(null);
+    const [sbomData, setSbomData] = useState([]);
     const [searchQuery, setSearchQuery] = useState('');
     const [showSoftwareList, setShowSoftwareList] = useState(false);
     const navigate = useNavigate();
@@ -53,7 +53,11 @@ const SBOM = () => {
             const fetchSbomData = async () => {
                 try {
                     const response = await axios.get(`http://localhost:5000/api/sbom/${selectedSoftware}/${selectedVersion}`);
-                    setSbomData(response.data);
+                    console.log('Fetched SBOM data:', response.data);
+                    const sbomItem = response.data[0];
+                setSbomData({
+                    ...sbomItem, 
+                });
                 } catch (error) {
                     console.error('Error fetching SBOM data:', error);
                 }
@@ -76,14 +80,6 @@ const SBOM = () => {
         setShowSoftwareList(query.length > 0); 
         navigate(`?search=${query}`);
     };
-
-    // const handleSoftwareChange = (softwareName) => {
-    //     setSelectedSoftware(softwareName);
-    //     setSelectedVersion('');
-    //     setSbomData(null); 
-    //     setShowSoftwareList(false); 
-    // };
-
     
     const handleSoftwareChange = (softwareName) => {
         setSelectedSoftware(softwareName); 
@@ -179,23 +175,28 @@ const SBOM = () => {
 
             {sbomData && (
                 <div className="sbom-data">
-        <h3>SBOM Data for {selectedSoftware} - {selectedVersion}</h3>
-        <p><strong>Dependencies:</strong> {sbomData.dependencies.join(', ')}</p>
-        <p><strong>Vulnerabilities:</strong> {sbomData.vulnerabilities.join(', ')}</p>
-        <p><strong>Enriched Data:</strong> {JSON.stringify(sbomData.enrichedData)}</p>
-
-                    {/* <h3>SBOM Data for {selectedSoftware} - {selectedVersion}</h3>
+                <h3>SBOM Data for {selectedSoftware} - {selectedVersion}</h3>
+                    <p><strong>Licenses:</strong> {sbomData.license || 'No license info available'}</p>
                     <p><strong>Vulnerability:</strong> {sbomData.vulnerability}</p>
-                    <p><strong>Hardware:</strong> {sbomData.hardwareName}</p>
+                    <p><strong>Vulnerability Type:</strong> {sbomData.vulnerabilityType}</p>
                     <p><strong>Hardware Version:</strong> {sbomData.hardwareVersion}</p>
+                    <p><strong>Hardware:</strong> {sbomData.hardware}</p>
+                    <p><strong>Organization Name:</strong> {sbomData.organization}</p>
+                    <p><strong>Person Name:</strong> {sbomData.person}</p>
+                    <p><strong>Manufacturer:</strong> {sbomData.manufacturer}</p>
                     <p><strong>Depends on:</strong> {sbomData.softwareVersion}</p>
                     <p><strong>Operates on:</strong> {sbomData.hardwareVersion}</p>
                     <p><strong>License:</strong> {sbomData.license}</p>
-                    <p><strong>Organization Name:</strong> {sbomData.organizationName}</p>
-                    <p><strong>Person Name:</strong> {sbomData.personName}</p>
-                    <p><strong>Vulnerability Type:</strong> {sbomData.vulnerabilityType}</p>
                     <p><strong>Details:</strong> {sbomData.intangible}</p>
-                    <p><strong>Description:</strong> {sbomData.description}</p> */}
+                    <p><strong>Description:</strong> {sbomData.description}</p>
+                    <p><strong>Dependency:</strong> {sbomData.dependency || 'No dependencies available'}</p>
+                    <p><strong>Related Software Version:</strong> {sbomData.relatedSoftwareVersion || 'No related software version'}</p>
+                    <p><strong>Vulnerable Software:</strong> {sbomData.vulnerableSoftware || 'No vulnerable software listed'}</p>
+
+        {/* <p><strong>Dependencies:</strong> {sbomData.dependencies.join(', ')}</p>
+        <p><strong>Vulnerabilities:</strong> {sbomData.vulnerabilities.join(', ')}</p>
+        <p><strong>Enriched Data:</strong> {JSON.stringify(sbomData.enrichedData)}</p> */}
+                    
                 </div>
             )}
         </div>
