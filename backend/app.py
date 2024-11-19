@@ -86,14 +86,16 @@ def api_get_vulnerabilities():
 @app.route('/api/sbom', methods=['POST'])
 def api_post_sbom():
     data = request.get_json()
-    software_name = data.get('name')
-    software_version = data.get('version')
+    software_name = request.args.get('name')
+    software_version = request.args.get('version')
     if not software_name or not software_version:
         return jsonify({"error": "Missing required parameters"}), 400
 
+    try:
     # Generate the SBOM using the provided software name and version
-    sbom = sbom_service.get_sbom(software_name, software_version)
-    return jsonify(sbom)
-
+        sbom = sbom_service.get_sbom(software_name, software_version)
+        return jsonify(sbom)
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 if __name__ == '__main__':
     app.run(debug=True)
