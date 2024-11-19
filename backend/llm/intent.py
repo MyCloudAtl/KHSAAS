@@ -1,7 +1,7 @@
 import requests
 import os
 
-BASE = "http://localhost:5055"
+BASE = ""
 
 SOFTWARE_LIST= "/api/softwares"
 SOFTWARE_VERSIONS = "/get_versions"

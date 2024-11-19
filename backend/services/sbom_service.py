@@ -39,7 +39,7 @@ class SBOMService:
                 dependencies = []
                 for binding in results['results']['bindings']:
                     dependency_url = binding['dependency']['value']
-                    match = re.findall(r'[^/]+$', dependency_url)  Extract the last part of the URL
+                    match = re.findall(r'[^/]+$', dependency_url) # Extract the last part of the URL
                     if match:
                         dependencies.append(match[0])
                 logging.debug(f"Dependencies found: {dependencies}")
