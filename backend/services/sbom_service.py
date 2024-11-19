@@ -6,7 +6,6 @@ import requests
 import json
 import re
 
-#Configure logging
 logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
 
 SC = Namespace("https://w3id.org/secure-chain/")
@@ -197,11 +196,6 @@ class SBOMService:
             logging.error(f"Error generating SBOM: {e}", exc_info=True)
             return {}
 
-    # def perform_ner(self, sbom):
-    #     return identify_entities(sbom)
-
-    # def extract_relations(self, entities):
-    #     return extract_relations(entities)
     def perform_ner(self, sbom):
         try:
             ner_results = identify_entities(sbom)

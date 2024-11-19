@@ -62,7 +62,6 @@ def get_sbom(software_name, software_version):
 
 @app.route('/get_versions', methods=['GET'])
 def get_versions():
-    # Retrieve product name from query parameters
     product_name = request.args.get('name', '')
     versions = grouped_products.get(product_name, [])  # Get versions for the selected product
     return jsonify(versions)
@@ -91,7 +90,6 @@ def api_post_sbom():
     if not software_name or not software_version:
         return jsonify({"error": "Missing required parameters"}), 400
 
-    # Generate the SBOM using the provided software name and version
     sbom = sbom_service.get_sbom(software_name, software_version)
     return jsonify(sbom)
 
