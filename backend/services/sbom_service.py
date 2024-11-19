@@ -2,10 +2,11 @@ import logging
 from rdflib import Namespace
 from models.ner_model import identify_entities
 from models.relation_extraction_model import extract_relations
-# import requests
+import requests
 import json
+import re
 
-# Configure logging
+#Configure logging
 logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
 
 SC = Namespace("https://w3id.org/secure-chain/")
@@ -21,7 +22,7 @@ class SBOMService:
         PREFIX sc: <https://w3id.org/secure-chain/>
         PREFIX schema: <http://schema.org/>
 
-        SELECT ?dependency 
+        SELECT ?dependency
         WHERE {{
             ?software a sc:Software .
             ?software schema:name "{software_name}" .
@@ -30,11 +31,17 @@ class SBOMService:
             ?softwareVersion sc:dependsOn ?dependency .
         }}
         """
+        logging.debug(f"Generated query: {query}")
         logging.debug(f"Querying dependencies for \"{software_name}\" version \"{software_version}\"")
         try:
             results = self.sparql_client.query(query)
             if results and 'results' in results and 'bindings' in results['results']:
-                dependencies = [binding['dependency']['value'] for binding in results['results']['bindings']]
+                dependencies = []
+                for binding in results['results']['bindings']:
+                    dependency_url = binding['dependency']['value']
+                    match = re.findall(r'[^/]+$', dependency_url)  Extract the last part of the URL
+                    if match:
+                        dependencies.append(match[0])
                 logging.debug(f"Dependencies found: {dependencies}")
                 return dependencies
             else:
@@ -59,13 +66,18 @@ class SBOMService:
         }}
         """
         logging.debug(f"Querying vulnerabilities for {software_name} version {software_version}")
-        results = self.sparql_client.query(query)
-        if results and 'results' in results and 'bindings' in results['results']:
-            vulnerabilities = [binding['vulnerability']['value'] for binding in results['results']['bindings']]
-            logging.debug(f"Vulnerabilities found: {vulnerabilities}")
-            return vulnerabilities
-        else:
-            logging.debug("No vulnerabilities found.")
+        logging.debug(f"Generated vulnerabilities query: {query}")
+        try:
+            results = self.sparql_client.query(query)
+            if results and 'results' in results and 'bindings' in results['results']:
+                vulnerabilities = [binding['vulnerability']['value'] for binding in results['results']['bindings']]
+                logging.debug(f"Vulnerabilities found: {vulnerabilities}")
+                return vulnerabilities
+            else:
+                logging.debug("No vulnerabilities found.")
+                return []
+        except Exception as e:
+            logging.error(f"Error executing vulnerabilities query: {e}")
             return []
 
     def get_sbom(self, software_name, software_version):
@@ -79,9 +91,12 @@ class SBOMService:
                 'dependencies': dependencies,
                 'vulnerabilities': vulnerabilities,
             }
+            logging.debug(f"SBOM before enrichment: {sbom}")
 
             ner_results = self.perform_ner(sbom)
+            logging.debug(f"NER results: {ner_results}")
             relation_results = self.extract_relations(ner_results)
+            logging.debug(f"Relation extraction results: {relation_results}")
             sbom['enrichedData'] = relation_results
 
             return json.dumps(sbom)
@@ -89,8 +104,25 @@ class SBOMService:
             logging.error(f"Error generating SBOM: {e}", exc_info=True)
             return {}
 
+    # def perform_ner(self, sbom):
+    #     return identify_entities(sbom)
+
+    # def extract_relations(self, entities):
+    #     return extract_relations(entities)
     def perform_ner(self, sbom):
-        return identify_entities(sbom)
+        try:
+            ner_results = identify_entities(sbom)
+            logging.debug(f"NER results: {ner_results}")
+            return ner_results
+        except Exception as e:
+            logging.error(f"Error performing NER: {e}")
+            return []
 
     def extract_relations(self, entities):
-        return extract_relations(entities)
+        try:
+            relation_results = extract_relations(entities)
+            logging.debug(f"Relations extracted: {relation_results}")
+            return relation_results
+        except Exception as e:
+            logging.error(f"Error extracting relations: {e}")
+            return []
