@@ -88,17 +88,17 @@ class SBOMService:
             sbom2 = self.get_sbom_2(software_name, software_version)
             
             # Sbom out of the get_sbom_2 function
-            # sbom = {
-            #     "sbom": sbom2,
-            # }
+            sbom = {
+                "sbom": sbom2,
+            }
 
             # Sbom out of the dependencies and vulnerabilities functions
-            sbom = {    
-                'software': software_name,
-                'version': software_version,
-                'dependencies': dependencies,
-                'vulnerabilities': vulnerabilities,
-            }
+            # sbom = {    
+            #     'software': software_name,
+            #     'version': software_version,
+            #     'dependencies': dependencies,
+            #     'vulnerabilities': vulnerabilities,
+            # }
 
             return json.dumps(sbom)
         except Exception as e:
@@ -143,6 +143,9 @@ class SBOMService:
             """
 
             results = self.sparql_client.query(query)
+            print(f"Generated query: {query}")
+            print("Results: ",results)
+
             if results and 'results' in results and 'bindings' in results['results']:
                 sbom = []
                 for binding in results['results']['bindings']:
@@ -160,9 +163,7 @@ class SBOMService:
                 return []
             
         except Exception as e:
-            logging.error(f"Error generating SBOM: {e}", exc_info=True)
-            return "Hey nothing here"
-
+            logging.error(f"Error executing query: {e}")
     def perform_ner(self, sbom):
         return identify_entities(sbom)
 
