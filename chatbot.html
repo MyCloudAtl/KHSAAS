@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chatbot</title>
+    <link rel="stylesheet" href="chatbotstyles.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+
+    <div class="container">
+        <!-- Left: Chatbot UI -->
+        <div class="chatbox" id="chatbox">
+            <div id="chat-messages"> "How may I help you today?"</div> <!-- Chat history area -->
+            <div class="user-input-section">
+                <textarea id="user-input" placeholder="Type your Response Here" rows="3"></textarea>
+                <button onclick="handleUserInput()">Send</button>
+            </div>
+           
+        </div>
+
+        <!-- Right: Graphical Results -->
+        <div class="graph-area" id="graph-area">
+            <canvas id="result-chart"></canvas>
+        </div>
+    </div>
+
+    <script src="chatbotscript.js"></script>
+</body>
+</html>
