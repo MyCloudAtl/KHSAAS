@@ -2,3 +2,7 @@ SPARQLWrapper
 Flask
 rdflib
 spacy
+pandas
+flask_cors
+instructor
+google-generativeai
