@@ -1,5 +1,6 @@
 import logging
 import json
+from SPARQLWrapper import SPARQLWrapper, JSON
 from flask import Flask, request, render_template, jsonify, abort
 from utils.sparql_client import SPARQLClient
 from routes.sbom_routes import sbom_bp
@@ -52,15 +53,15 @@ def get_versions_for_software(software_name):
     versions = grouped_products.get(software_name, [])
     return jsonify(versions)
 
-
 @app.route('/api/sbom/<software_name>/<software_version>', methods=['GET'])
 def get_sbom(software_name, software_version):
     try:
-        sbom_data = sbom_service.get_sbom(software_name, software_version)
-        if sbom_data:
-            return jsonify(json.loads(sbom_data))
-        else:
-            return jsonify({"error": "Unable to generate SBOM"}), 500
+        sbom_data = sbom_service.get_full_sbom(software_name, software_version)
+        return jsonify(sbom_data)
+        # if sbom_data:
+        #     return jsonify(json.loads(sbom_data))
+        # else:
+        #     return jsonify({"error": "Unable to generate SBOM"}), 500
     except Exception as e:
         logging.error(f"Error generating SBOM: {e}")
         return jsonify({"error": "Unable to generate SBOM"}), 500
@@ -92,14 +93,17 @@ def api_get_vulnerabilities():
 @app.route('/api/sbom', methods=['POST'])
 def api_post_sbom():
     data = request.get_json()
-    software_name = data.get('name')
-    software_version = data.get('version')
+    software_name = request.args.get('name')
+    software_version = request.args.get('version')
     if not software_name or not software_version:
         return jsonify({"error": "Missing required parameters"}), 400
 
+    try:
     # Generate the SBOM using the provided software name and version
-    sbom = sbom_service.get_sbom(software_name, software_version)
-    return jsonify(sbom)
+        sbom = sbom_service.get_sbom(software_name, software_version)
+        return jsonify(sbom)
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 @app.route('/api/chat', methods=['POST'])
 def api_post_chat():
