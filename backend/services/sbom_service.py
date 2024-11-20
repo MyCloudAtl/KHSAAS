@@ -1,7 +1,9 @@
 import logging
 from rdflib import Namespace
-from models.ner_model import identify_entities
-from models.relation_extraction_model import extract_relations
+from rdflib.plugins.sparql import prepareQuery
+from rdflib import Graph, Literal, URIRef
+from rdflib.namespace import RDF, FOAF
+from models.build_relationship_df import fetch_dependency_counts, fetch_vulnerability_counts, build_dataframe
 import requests
 import json
 import re
@@ -14,7 +16,27 @@ SCHEMA = Namespace("http://schema.org/")
 class SBOMService:
     def __init__(self, sparql_client):
         self.sparql_client = sparql_client
+        self.dependency_regex_patterns = [
+            (r".*/([^/#]+)#(\d+)", r"\1 \2"),  
+            (r".*/([^/#]+)#%2A", r"\1 *"),    
+            (r".*/([^/#]+)#(.+)", r"\1 \2"),  
+        ]
+        self.vulnerability_regex_patterns = [
+            (r".*/([^/]*)$", r"\1"),
+        ]
         logging.info("SBOMService initialized with SPARQL client.")
+
+    def format_dependency(self, uri):
+        # Apply each regex pattern to the dependency URI
+        for pattern, replacement in self.dependency_regex_patterns:
+            uri = re.sub(pattern, replacement, uri)
+        return unquote(uri)  
+
+    def format_vulnerability(self, uri):
+        # Apply each regex pattern to the vulnerability URI
+        for pattern, replacement in self.vulnerability_regex_patterns:
+            uri = re.sub(pattern, replacement, uri)
+        return unquote(uri)  
 
     def get_dependencies(self, software_name, software_version):
         query = f"""
@@ -38,17 +60,17 @@ class SBOMService:
                 dependencies = []
                 for binding in results['results']['bindings']:
                     dependency_url = binding['dependency']['value']
-                    match = re.findall(r'[^/]+$', dependency_url)  #Extract the last part of the URL
-                    if match:
-                        dependencies.append(match[0])
-                logging.debug(f"Dependencies found: {dependencies}")
-                return dependencies
+                    formatted_dependency = self.format_dependency(dependency_uri)
+                    dependencies.append(formatted_dependency)
+                if dependencies:
+                    logging.debug(f"Dependencies found: {dependencies}")
+                    return dependencies
             else:
                 logging.debug("No dependencies found.")
                 return ["No dependencies found."]
         except Exception as e:
             logging.error(f"Error executing query: {e}")
-            return ["Error retrieving dependencies."]
+            return ["No dependencies found."]
 
     def get_vulnerabilities(self, software_name, software_version):
         query = f"""
@@ -68,16 +90,18 @@ class SBOMService:
         logging.debug(f"Generated vulnerabilities query: {query}")
         try:
             results = self.sparql_client.query(query)
+            vulnerabilities = []
             if results and 'results' in results and 'bindings' in results['results']:
-                vulnerabilities = [binding['vulnerability']['value'] for binding in results['results']['bindings']]
-                logging.debug(f"Vulnerabilities found: {vulnerabilities}")
-                return vulnerabilities
-            else:
-                logging.debug("No vulnerabilities found.")
-                return ["No vulnerabilities found."]
+                for binding in results['results']['bindings']:
+                    vulnerability_uri = binding['vulnerability']['value']
+                    formatted_vulnerability = self.format_vulnerability(vulnerability_uri)
+                    vulnerabilities.append(formatted_vulnerability)
+                if vulnerabilities:
+                    logging.debug(f"Vulnerabilities found: {vulnerabilities}")
+                    return vulnerabilities
         except Exception as e:
             logging.error(f"Error executing vulnerabilities query: {e}")
-            return ["Error retrieving vulnerabilities."]
+            return ["No vulnerabilities found."]
     
     def get_full_sbom(self, software_name, software_version, limit=100):
         try:
@@ -172,41 +196,22 @@ class SBOMService:
             logging.info(f"Generating SBOM for {software_name} version {software_version}")
             dependencies = self.get_dependencies(software_name, software_version)
             vulnerabilities = self.get_vulnerabilities(software_name, software_version)
-            licenses = self.get_licenses(software_name, software_version)
             sbom = {
                 'software': software_name,
                 'version': software_version,
                 'dependencies': dependencies,
                 'vulnerabilities': vulnerabilities,
-                'licenses': licenses
             }
-            logging.debug(f"SBOM before enrichment: {sbom}")
-
-            ner_results = self.perform_ner(sbom)
-            logging.debug(f"NER results: {ner_results}")
-            relation_results = self.extract_relations(ner_results)
-            logging.debug(f"Relation extraction results: {relation_results}")
-            sbom['enrichedData'] = relation_results
-
-            return json.dumps(sbom)
+            return sbom
         except Exception as e:
             logging.error(f"Error generating SBOM: {e}", exc_info=True)
             return {}
 
-    def perform_ner(self, sbom):
-        try:
-            ner_results = identify_entities(sbom)
-            logging.debug(f"NER results: {ner_results}")
-            return ner_results
-        except Exception as e:
-            logging.error(f"Error performing NER: {e}")
-            return []
+    def build_dashboard(self, software_name):
+        # Ensure that the fetch functions are correctly imported
+        from models.build_relationship_df import fetch_dependency_counts, fetch_vulnerability_counts, build_dataframe
 
-    def extract_relations(self, entities):
-        try:
-            relation_results = extract_relations(entities)
-            logging.debug(f"Relations extracted: {relation_results}")
-            return relation_results
-        except Exception as e:
-            logging.error(f"Error extracting relations: {e}")
-            return []
+        dependency_counts = fetch_dependency_counts(self.sparql_client, software_name)
+        vulnerability_counts = fetch_vulnerability_counts(self.sparql_client, software_name)
+        df = build_dataframe(dependency_counts, vulnerability_counts, software_name)
+        return df
