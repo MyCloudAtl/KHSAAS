@@ -66,7 +66,6 @@ def get_sbom(software_name, software_version):
         logging.error(f"Error generating SBOM: {e}")
         return jsonify({"error": "Unable to generate SBOM"}), 500
 
-
 @app.route('/get_versions', methods=['GET'])
 def get_versions():
     product_name = request.args.get('name', '')
@@ -103,6 +102,24 @@ def api_post_sbom():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
+@app.route('/api/sbom', methods=['GET'])
+def get_sbom_controller():
+    # Retrieve parameters from query string instead of request body
+    software_name = request.args.get('software_name')
+    software_version = request.args.get('software_version')
+    
+    # Check for the presence of required parameters
+    if not software_name or not software_version:
+        return jsonify({"error": "Missing required parameters: 'software_name' and 'software_version'"}), 400
+
+    try:
+        # Retrieve the SBOM using the service
+        sbom = sbom_service.get_sbom(software_name, software_version)
+        return jsonify(sbom)
+    except Exception as e:
+        logging.error(f"Error retrieving SBOM: {e}", exc_info=True)
+        return jsonify({"error": "An error occurred while retrieving the SBOM."}), 500
+
 @app.route('/api/chat', methods=['POST'])
 def api_post_chat():
     data = request.get_json()
@@ -110,6 +127,21 @@ def api_post_chat():
     
     response = handle_intent(user_query)
     return jsonify(response)
+
+@app.route('/dashboard', methods=['GET'])
+def dashboard():
+    software_name = request.args.get('software_name')
+    if not software_name or not is_valid_software_name(software_name):
+        return jsonify({'error': 'A valid software_name parameter is required'}), 400
+    try:
+        # Build the dashboard DataFrame
+        df = sbom_service.build_dashboard(software_name)
+        # Convert the DataFrame to JSON
+        dashboard_data = df.to_dict(orient='records')
+        return jsonify(dashboard_data)
+    except Exception as e:
+        # Handle exceptions and return an error response
+        return jsonify({'error': str(e)}), 500
 
 if __name__ == '__main__':
     app.run(debug=True)
