@@ -1,5 +1,3 @@
-# FILE: tests/test_sbom_service.py
-
 import pytest
 from unittest.mock import MagicMock
 from services.sbom_service import SBOMService
