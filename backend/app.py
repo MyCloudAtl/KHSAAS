@@ -114,5 +114,3 @@ def api_post_chat():
 if __name__ == '__main__':
     app.run(debug=True)
 
-
-# git stash apply stash@{0}
