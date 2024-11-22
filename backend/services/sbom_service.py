@@ -3,6 +3,7 @@ from rdflib import Namespace
 from rdflib.plugins.sparql import prepareQuery
 from rdflib import Graph, Literal, URIRef
 from rdflib.namespace import RDF, FOAF
+from urllib.parse import unquote
 from models.build_relationship_df import fetch_dependency_counts, fetch_vulnerability_counts, build_dataframe
 import requests
 import json
@@ -114,7 +115,7 @@ class SBOMService:
             WHERE {{
                 ?lib schema:name "{product_name}" .
                 ?lib sc:hasSoftwareVersion ?version .
-                ?dependency sc:dependsOn ?version .
+                ?dependency sc:dependsOn+ ?version .
                 ?dependency sc:vulnerableTo ?cve .
             }}  
             """
@@ -123,13 +124,14 @@ class SBOMService:
             if results and 'results' in results and 'bindings' in results['results']:
                 sbom_data = []
                 for binding in results['results']['bindings']:
-                    # logging.info(binding['softwareVersion']['value'].split('/')[-1])
+                    dependency_uri = binding.get('dependency', {}).get('value', '')
+                    version_uri = binding.get('version', {}).get('value', '')
+                    cve_uri = binding.get('cve', {}).get('value', '')
                     sbom_data.append({
-                        'dependency': binding['dependency']['value'].split('/')[-1] if 'dependency' in binding else None,
-                        'softwareVersion': binding['version']['value'].split('/')[-1] if 'version' in binding else None,
-                        'vulnerability': binding['cve']['value'].split('/')[-1] if 'cve' in binding else None,
+                        'dependency': self.format_dependency(dependency_uri),
+                        'softwareVersion': self.format_dependency(version_uri),
+                        'vulnerability': self.format_vulnerability(cve_uri),
                     })
-                # logging.debug(f"Bindings: {results.get('results', {}).get('bindings', [])}")
                 return sbom_data
             else:
                 logging.debug("No SBOM found.")
@@ -137,6 +139,41 @@ class SBOMService:
 
         except Exception as e:
             logging.error(f"Error generating SBOM: {e}", exc_info=True)
+            return "Hey nothing here"
+        
+    def get_recommendation(self, product_name):
+        try:
+            logging.info(f"Generating recommendation for {product_name}")
+            query = f"""
+            PREFIX sc: <https://w3id.org/secure-chain/>
+            PREFIX schema: <http://schema.org/>
+
+            SELECT DISTINCT ?version
+            WHERE {{
+                ?lib schema:name "{product_name}" .
+                ?lib sc:hasSoftwareVersion ?version .
+                ?version a sc:SoftwareVersion .
+                FILTER NOT EXISTS {{
+                    ?version sc:vulnerableTo ?cve .
+                }}
+            }}  
+            """
+            logging.debug(f"Generated query: {query}")
+            results = self.sparql_client.query(query)
+            if results and 'results' in results and 'bindings' in results['results']:
+                sbom_data = []
+                for binding in results['results']['bindings']:
+                    version_uri = binding.get('version', {}).get('value', '')
+                    sbom_data.append({
+                        'softwareVersion': self.format_dependency(version_uri),
+                    })
+                return sbom_data
+            else:
+                logging.debug("No SBOM found.")
+                return []
+
+        except Exception as e:
+            logging.error(f"Error generating recommendation: {e}", exc_info=True)
             return "Hey nothing here"
 
 

@@ -1,8 +1,12 @@
 import logging
 import json
+import re
+from urllib.parse import unquote
+from rdflib import Namespace
 from SPARQLWrapper import SPARQLWrapper, JSON
 from flask import Flask, request, render_template, jsonify, abort
 from utils.sparql_client import SPARQLClient
+from urllib.parse import unquote
 from routes.sbom_routes import sbom_bp
 from services.sbom_service import SBOMService 
 from utils.data_loader import load_products
@@ -68,12 +72,15 @@ def home():
 
 @app.route('/api/sbom/<product_name>', methods=['GET'])
 def get_details_data(product_name):
-    product_name = product_name.lower()
+    product_name = unquote(product_name).lower()  # Decode the URL parameter
+    app.logger.info(f"Decoded product name: {product_name}")  # Log the decoded product name
     try:
-        sbom_data = sbom_service.get_details(product_name)  # Fetch details using the service
+        sbom_data = sbom_service.get_details(product_name)
+        rec_data = sbom_service.get_recommendation(product_name)
         if not sbom_data:
             return jsonify({"error": "SBOM data not found for the specified product"}), 404
-        return jsonify(sbom_data)
+        return jsonify({ 'sbomData': sbom_data,
+            'recData': rec_data})
     except Exception as e:
         app.logger.error(f"Error fetching SBOM data for {product_name}: {e}")
         return jsonify({"error": "Failed to fetch SBOM data"}), 500
