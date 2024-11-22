@@ -1,8 +1,12 @@
 import logging
 import json
+import re
+from urllib.parse import unquote
+from rdflib import Namespace
 from SPARQLWrapper import SPARQLWrapper, JSON
 from flask import Flask, request, render_template, jsonify, abort
 from utils.sparql_client import SPARQLClient
+from urllib.parse import unquote
 from routes.sbom_routes import sbom_bp
 from services.sbom_service import SBOMService 
 from utils.data_loader import load_products
@@ -12,8 +16,8 @@ import os
 
 # Load the products from the CSV
 products_df = load_products('data/products_versions.csv').drop_duplicates(subset=['product', 'version'])
-products_df2 = products_df.iloc[0:1000]
-grouped_products = products_df2.groupby('product')['version'].apply(list).to_dict()
+# products_df2 = products_df.iloc[0:1000]
+grouped_products = products_df.groupby('product')['version'].apply(list).to_dict()
 
 app = Flask(__name__)
 CORS(app)
@@ -44,27 +48,42 @@ sbom_service = SBOMService(sparql_client)
 def home():
     return render_template('index.html', products=grouped_products)
 
-@app.route('/api/softwares', methods=['GET'])
-def get_softwares():
-    return jsonify(grouped_products)
+# @app.route('/api/softwares', methods=['GET'])
+# def get_softwares():
+#     return jsonify(grouped_products)
 
-@app.route('/api/softwares/<software_name>/versions', methods=['GET'])
-def get_versions_for_software(software_name):
-    versions = grouped_products.get(software_name, [])
-    return jsonify(versions)
+# @app.route('/api/softwares/<software_name>/versions', methods=['GET'])
+# def get_versions_for_software(software_name):
+#     versions = grouped_products.get(software_name, [])
+#     return jsonify(versions)
 
-@app.route('/api/sbom/<software_name>/<software_version>', methods=['GET'])
-def get_sbom(software_name, software_version):
+# @app.route('/api/sbom/<software_name>/<software_version>', methods=['GET'])
+# def get_sbom(software_name, software_version):
+#     try:
+#         sbom_data = sbom_service.get_full_sbom(software_name, software_version)
+#         return jsonify(sbom_data)
+#         # if sbom_data:
+#         #     return jsonify(json.loads(sbom_data))
+#         # else:
+#         #     return jsonify({"error": "Unable to generate SBOM"}), 500
+#     except Exception as e:
+#         logging.error(f"Error generating SBOM: {e}")
+#         return jsonify({"error": "Unable to generate SBOM"}), 500
+
+@app.route('/api/sbom/<product_name>', methods=['GET'])
+def get_details_data(product_name):
+    product_name = unquote(product_name).lower()  # Decode the URL parameter
+    app.logger.info(f"Decoded product name: {product_name}")  # Log the decoded product name
     try:
-        sbom_data = sbom_service.get_full_sbom(software_name, software_version)
-        return jsonify(sbom_data)
-        # if sbom_data:
-        #     return jsonify(json.loads(sbom_data))
-        # else:
-        #     return jsonify({"error": "Unable to generate SBOM"}), 500
+        sbom_data = sbom_service.get_details(product_name)
+        rec_data = sbom_service.get_recommendation(product_name)
+        if not sbom_data:
+            return jsonify({"error": "SBOM data not found for the specified product"}), 404
+        return jsonify({ 'sbomData': sbom_data,
+            'recData': rec_data})
     except Exception as e:
-        logging.error(f"Error generating SBOM: {e}")
-        return jsonify({"error": "Unable to generate SBOM"}), 500
+        app.logger.error(f"Error fetching SBOM data for {product_name}: {e}")
+        return jsonify({"error": "Failed to fetch SBOM data"}), 500
 
 @app.route('/get_versions', methods=['GET'])
 def get_versions():
