@@ -41,43 +41,45 @@ const SBOM = () => {
 
     return (
         <div className="sbom-container">
-            <button onClick={() => navigate('/')}>Return Home</button>
-            <h2>SBOM Details</h2>
+        <button className="home-button" onClick={() => navigate('/')}>Return Home</button>
+        <h2>SBOM Details</h2>
 
-            <form onSubmit={handleSubmit}>
-                <div>
-                    <label htmlFor="productName">Product Name</label>
-                    <input
-                        type="text"
-                        id="productName"
-                        value={productName}
-                        onChange={handleProductNameChange}
-                        placeholder="Enter product name"
-                        required
-                    />
-                </div>
-                <button type="submit" disabled={loading}>Get SBOM Data</button>
-            </form>
+        <form onSubmit={handleSubmit} className="product-form">
+            <div className="form-group">
+                <label htmlFor="productName">Product Name</label>
+                <input
+                    type="text"
+                    id="productName"
+                    value={productName}
+                    onChange={handleProductNameChange}
+                    placeholder="Enter product name"
+                    required
+                    className="input-field"
+                />
+            </div>
+            <button type="submit" className="submit-button" disabled={loading}>Get SBOM Data</button>
+        </form>
 
-            {loading && <p>Loading...</p>}
-            {error && <p>{error}</p>}
+        {loading && <p className="loading-text">Loading...</p>}
+        {error && <div className="error-message">{error}</div>}
 
-            {sbomData && (
-                <div className="sbom-data">
+        {sbomData && (
+            <div className="sbom-data-card">
                 <h3>SBOM Data for {productName}</h3>
-                    <p><strong>Software Version:</strong> {sbomData.softwareVersion}</p>
-                    <p><strong>Dependency On:</strong> {sbomData.dependency || 'No dependencies available'}</p>
-                    <p><strong>Vulnerability:</strong> {sbomData.vulnerability}</p>
-                </div>
-            )}
-            {recData && (
-                <div className="rec-data">
-                <h3>Safe {productName} Versions: </h3>
-                    <p><strong>Recommendation:</strong> {recData.softwareVersion}</p>
-                </div>
-            )}
-        </div>
-    );
+                <p><strong>Software Version:</strong> {sbomData.softwareVersion}</p>
+                <p><strong>Dependency On:</strong> {sbomData.dependency}</p>
+                <p><strong>Vulnerability:</strong> {sbomData.vulnerability}</p>
+            </div>
+        )}
+
+        {recData && (
+            <div className="recommendation-card">
+                <h3>Safe {productName} Versions</h3>
+                <p><strong>Recommended Version:</strong> {recData.softwareVersion}</p>
+            </div>
+        )}
+    </div>
+);
 };
 
 export default SBOM;
