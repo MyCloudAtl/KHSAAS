@@ -41,23 +41,138 @@
   color: #888;
 }
 
-.sbom-data select {
-  width: 100%;
-  padding: 8px;
-  margin: 5px 0;
-  border: 1px solid #ddd;
-  border-radius: 4px;
+.sbom-container {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 20px;
+    background-color: #114a1e6a;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
-.sbom-data p {
-  margin: 5px 0;
+h2 {
+    text-align: center;
+    color: #333;
+}
+
+button {
+    padding: 10px 20px;
+    margin: 10px 0;
+    cursor: pointer;
+    border: none;
+    border-radius: 4px;
+    font-size: 16px;
+}
+
+.home-button {
+    background-color: rgb(29, 89, 52);
+    border: 5px solid rgb(29, 89, 52);
+    color: white;
+    width: 100%;
+    cursor: pointer; 
+    transition: all 0.3s ease;
+}
+.home-button:hover {
+    background-color: #359e35; 
+    border: 5px solid #359e35;
+    box-shadow: 0 0 15px 5px rgb(255, 255, 255);
+    color: white;
+}
+
+.submit-button {
+  background-color: #8c8d8c;
+  border: 5px solid rgb(29, 89, 52);
+  color: white;
+  width: 100%;
+  cursor: pointer; 
+  transition: background-color 0.3s ease, border-color 0.3s ease;
+}
+
+.submit-button:hover {
+  background-color: #359e35;
+  border-color: rgb(29, 89, 52);
+  box-shadow: 0 0 15px 5px rgb(113, 255, 139);
+}
+
+.submit-button:disabled {
+    background-color: #cccccc;
+    cursor: not-allowed;
+}
+
+/* Form and Input */
+.product-form {
+    margin-bottom: 20px;
 }
 
 .form-group {
-  margin-bottom: 15px;
+    margin-bottom: 15px;
 }
 
-.form-group label {
-  font-weight: bold;
+label {
+    font-size: 14px;
+    color: #555;
 }
+
+.input-field {
+    width: 100%;
+    padding: 8px;
+    font-size: 16px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+
+/* Data Cards */
+.sbom-data-card, .recommendation-card {
+    background-color: #ffffff;
+    border-radius: 8px;
+    padding: 20px;
+    margin-top: 20px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.sbom-data-card h3, .recommendation-card h3 {
+    font-size: 20px;
+    color: #333;
+}
+
+.sbom-data-card p, .recommendation-card p {
+    font-size: 16px;
+    color: #555;
+}
+
+.sbom-data-card p strong, .recommendation-card p strong {
+    font-weight: bold;
+}
+
+/* SBOM Item */
+.sbom-item {
+    margin-bottom: 15px;
+}
+
+/* Loading and Error Messages */
+.loading-text {
+    text-align: center;
+    font-size: 18px;
+    color: #007bff;
+}
+
+.error-message {
+    background-color: #f8d7da;
+    color: #721c24;
+    padding: 15px;
+    border: 1px solid #f5c6cb;
+    border-radius: 4px;
+    margin-bottom: 20px;
+    text-align: center;
+}
+
+/* Separator */
+hr {
+    border: 0;
+    border-top: 1px solid #eee;
+    margin: 15px 0;
+}
+
+
+
 
