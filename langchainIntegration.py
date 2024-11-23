@@ -1,4 +1,11 @@
+#TODOS:
+#1. modify version extraction to account for different format in method extractSoftware
+#2. Test functions with LLM_type= higher with LLAMA, gpt-3 or higher and Tune up as needed. 
+
+#HIGHER LEVEL NOTES:gpt-4 can successfully convert user input to sparql query for even advanced query types. This was verified using chatgpt-4.0
+
 from flask import Flask, request, jsonify
+from flask_cors import CORS  # Import CORS
 from rdflib import Graph
 #from langchain_community.llms import OpenAI
 from langchain_huggingface import HuggingFaceEndpoint
@@ -7,14 +14,26 @@ import os
 import spacy
 from spellchecker import SpellChecker
 import re
+from rdflib.namespace import Namespace, RDF
 
 app = Flask(__name__)
+CORS(app)
 
 # Load the Turtle file
 graph = Graph()
-graph.parse("shortened_sc.ttl", format="ttl")
+graph.parse("securechain.ttl", format="turtle")
+SC = Namespace("https://w3id.org/secure-chain/")
+SCHEMA = Namespace("http://schema.org/")
+graph.bind("sc", SC)
+graph.bind("schema", SCHEMA)
 
-api_key = "iMllLsv1LhqGb-HaLebOQLevMu65uRQ6-qxblPBHaok_81fL1KYPphxAZjKOMA"
+
+#NOTE: Switch LLM_type to lower for models lower than gpt-3.
+#LLM_type = "higher"
+LLM_type = "lower"
+
+#NOTE: provide your api_key is using higher LLM_type. Change your model and import that (i.e import OpenAI)
+api_key = ""
 # Initialize the language model for generating SPARQL queries
 #llm = OpenAI(model="gpt-3.5-turbo" , openai_api_key=api_key)
 
@@ -36,24 +55,7 @@ def fetchIntent():
     user_input = data.get("query", "")
     if not user_input:
         return jsonify({"error": "No input provided"}), 400
-    #question ="What is user asking for?"
-    #prompt = f"Context: {user_input}\nQuestion: {question}"
-    #prompt = f"what user is asking for by : {user_input} ?"
-    # Craft the prompt to guide the model
-    # Define examples in a separate variable
-    examples_ = """
-    User: I want to check dependencies for React 1.18.
-    Assistant: Do you want to see the dependencies for React 1.18?
 
-    User: Show vulnerabilities for React 1.18.
-    Assistant: Do you want to see the vulnerabilities for React 1.18?
-
-    User: Provide details about depandencies for XYZ 3.4.0.
-    Assistant: Do you want to see the dependencies for XYZ 3.4.0?
-
-    User: What are the vulnerabilities in abc?
-    Assistant: Do you want to see the vulnerabilities for abc?
-    """
     #TODO: add more prompts such that gpt-2 can be trained better
     examples = """
     User: I want to check dependency for React 1.18.
@@ -86,17 +88,17 @@ def fetchIntent():
     top_k = 50  # Limit to the top-k tokens
     try:
         response = llm.invoke(prompt,max_length=max_tokens, temperature= temperature, stop=["User:", "Assistant:"],).strip()
-        #user_intent = llm.invoke(prompt)
-        #response = llm.generate([prompt])  # Explicitly calling generate()
-
         user_intent = response.strip()  # Assuming response is a string
         # Extract framework and version
-        framework, version = extractSoftware(user_input)
+        framework, version = "default", "default"
+        if LLM_type == "lower":
+            framework, version = extractSoftware(user_input)       
+            # Modify the user intent based on extracted information
+            if framework and version:
+                user_intent = f"Do you want to see the {user_intent} for {framework} {version}?"
+        else:
+            user_intent = extractUserIntent(user_input)
 
-
-        # Modify the user intent based on extracted information
-        if framework and version:
-            user_intent = f"Do you want to see the {user_intent} for {framework} {version}?"
     except Exception as e:
         return jsonify({"error": f"LLM processing failed: {str(e)}"}), 500
      # Return the detected intent
@@ -104,7 +106,8 @@ def fetchIntent():
     return jsonify({"intent": user_intent})
 
 #the following two methods should be used with chatgpt 3 or higher version
-def extractSoftware2(user_input):
+#TODO:train the model on other query types and to correct typos and spell check
+def extractUserIntent(user_input):
     # Crafting the prompt to guide the model
     prompt = f"""
     Extract the software name and version from the following input:
@@ -112,43 +115,24 @@ def extractSoftware2(user_input):
 
     Examples:
     Input: "Show vulnerabilities for Reakt 1.12"
-    Output: Software: React, Version: 1.12
+    Output: "Do you want to see the vulnerabilities for React 1.12?"
 
     Input: "Dependencies for Angular 12"
-    Output: Software: Angular, Version: 12
+    Output: "Do you want to see the vulnerabilities for Angular 12?"
 
     Input: "Provide details about Vue.js 2.6.0"
-    Output: Software: Vue.js, Version: 2.6.0
+    Output: Do you want to see information about Vue.js 2.6.0?
 
-    Now, extract the software and version for this input:
-    '{user_input}'
+    Now, extract user intent and frame as a question and return Output for this Input:
+    '{user_input}'. Correct any typos and mis-spells as required.
     """
     
     # Sending the prompt to the LLM
-    response = llm.invoke(prompt)
-    print("line113: ",response)
-    # Parsing the response to extract framework and version
-    framework, version = parse_response(response)  # Define parse_response to handle the output format
-    return framework, version
+    response = llm.invoke(prompt).strip()
+    return response
 
-def parse_response(response):
-    # Example parsing logic for the LLM output
-    try:
-        lines = response.splitlines()
-        framework = None
-        version = None
-        for line in lines:
-            if line.startswith("Software:"):
-                framework = line.split(":")[1].strip()
-            if line.startswith("Version:"):
-                version = line.split(":")[1].strip()
-        return framework, version
-    except Exception as e:
-        print(f"Error parsing response: {e}")
-        return None, None
 
-#this is an alternative with limited capabilities of gpt-2. it should be replaced with the extractSoftware2 if using gpt3 or higher
-#to get more accurate results including typo corrections
+#this is an alternative with limited capabilities of gpt-2. 
 def extractSoftware(user_input):
     doc = nlp(user_input)
     framework = None
@@ -163,13 +147,9 @@ def extractSoftware(user_input):
         version_position = user_input.find(version)
         text_before_version = user_input[:version_position].strip()
         framework = text_before_version.split()[-1]  # Get the last word before the version
-        print("line165: ",framework, version)
         framework =getTypoCorrected(framework)
-        print("line 167:", framework)
-    # Generate the clarifying question
+
     if framework and version:
-        question = f"Do you want to see the dependencies for {framework} {version}?"
-        print(question)
         # return tuple with framework and version
         return framework,version
     else:
@@ -180,21 +160,6 @@ def getTypoCorrected(softwarename):
     spell = SpellChecker()
     corrected_name = spell.correction(softwarename)
     return corrected_name
-
-#this is for higher gpt-3 or higher versions. Does not work for gpt-2
-def getTypoCorrected2(softwarename):
-    #ask LLM to correct the software name and return corrected software name
-    prompt = f"Correct the typo in the following software name: '{softwarename}'Only return the corrected name."
-    
-    try:
-        # Invoke the LLM (you might use a GPT-2, GPT-3, or any other model for this)
-        corrected_name = llm.invoke(prompt).strip()
-        print("line185: ",corrected_name)
-        # Return the corrected software name
-        return corrected_name
-    except Exception as e:
-        print(f"Error during typo correction: {e}")
-        return softwarename  
 
 
 # Function to generate SPARQL query from user input. Not only to be used with higher model. WIll not work for gpt-2
@@ -208,11 +173,16 @@ def process_userinput():
     user_input = data.get("query", "")
     if not user_input:
         return jsonify({"error": "No input provided"}), 400
-    #sparql_q = generate_sparqlhigherModel(user_input)  #this is to be used for advanced models --gpt-3 or higher. works great for gpt-4    
-    query_results = generate_spqrql(user_input)   
-    return jsonify({"sparqlresults":query_results})
+    sparql_q =""
+    if LLM_type == "lower":
+        sparql_q = generate_spqrql(user_input)   
+    else:
+        query_q = generate_sparqlhigherModel(user_input)
+    #query_results = exetcute_query(query_q)
+    #return jsonify({"queryResults":query_results}) #when switched to this, modify ChatBot.js file
+    return jsonify({"sparqleq":sparql_q})
 
-
+#TODO: Modify version extraction.once version extraction is modified, modify the hardcoded value from this function
 def generate_spqrql(verified_intent):
     #extract software_name and software_intent
     match = re.search(r"dependencies for (\w+)\s+([\d.]+)|vulnerabilities for (\w+)\s+([\d.]+)", verified_intent, re.IGNORECASE)
@@ -230,11 +200,11 @@ def generate_spqrql(verified_intent):
 
             SELECT ?dependency
             WHERE {{
-                ?software a sc:Software .
-                ?software schema:name "{software_name}" .
-                ?software sc:hasSoftwareVersion ?softwareVersion .
-                ?softwareVersion sc:versionName "{software_version}" .
-                ?softwareVersion sc:dependsOn ?dependency .
+                ?software a sc:Software ;
+                     schema:name "{software_name}";
+                     sc:hasSoftwareVersion ?softwareVersion .
+                ?softwareVersion sc:versionName "0.9.1-5" ;
+                     sc:dependsOn ?dependency .
             }}
             """
     
@@ -247,31 +217,21 @@ def generate_spqrql(verified_intent):
 
             SELECT ?vulnerability
             WHERE {{
-                ?software a sc:Software .
-                ?software schema:name "{software_name}" .
-                ?software sc:hasSoftwareVersion ?softwareVersion .
-                ?softwareVersion sc:versionName "{software_version}" .
-                ?softwareVersion sc:vulnerableTo ?vulnerability .
+                ?software a sc:Software;
+                    schema:name "{software_name}";
+                    sc:hasSoftwareVersion ?softwareVersion .
+                ?softwareVersion sc:versionName "{software_version}" ;
+                     sc:vulnerableTo ?vulnerability .
             }}
             """
     else:
         return {"error": "Unrecognized intent. Please specify 'dependencies' or 'vulnerabilities'."}
     print(query)
-    results = graph.query(query)
-    print(results)
-
-    # Format results as a dictionary with software name and version as key and dictionary as a value 
-    formatted_results = {f"{software_name} {software_version}": {}}
-    for row in results:
-        print("line 266:",row)
-        for key, value in row.asdict().items():
-            if key not in formatted_results[f"{software_name} {software_version}"]:
-                formatted_results[f"{software_name} {software_version}"][key] = []
-            formatted_results[f"{software_name} {software_version}"][key].append(value.toPython())
-
-    return formatted_results
+    return query
 
 
+#TODO: provide examples for query formate such that it can be read
+#TODO: provide detailed ontology description
 def generate_sparqlhigherModel(verified_intent):
     #provide accurate and detailed ontology description-classes, dependencies, URIs/IRIs
     ontology_description ="""
@@ -301,10 +261,10 @@ def generate_sparqlhigherModel(verified_intent):
 
 
 
-#TODO - just  call execute query method in generate_sparql method after testing. No need to create a seperate end point
+#TODO - just  call execute query method in process_userinput() method after testing. No need to create a seperate end point
 # Execute the SPARQL query if it's valid
 @app.route('/execute-query', methods=['POST'])
-def execute_query():
+def execute_querytobereplaced():
     sparql_query = request.json.get("query","")
     if sparql_query:
         try:
@@ -320,6 +280,29 @@ def execute_query():
             return jsonify({"error": f"Error executing SPARQL query: {e}"}), 500
     else:
         return jsonify({"error": "No query provided"}), 400
+
+#TODO: fix the formatted results once ttl file can be read 
+def exetcute_query(query_spark):    
+    results = graph.query(query_spark)
+    print(results)
+    print("Number of triples in the graph:", len(graph))
+    for stmt in graph:
+        print(stmt)
+
+    print("Namespaces in the graph:")
+    for prefix, namespace in graph.namespaces():
+        print(prefix, namespace) 
+           
+    # Format results as a dictionary with software name and version as key and dictionary as a value 
+    formatted_results = {f"{software_name} {software_version}": {}}
+    for row in results:
+        print("line 266:",row)
+        for key, value in row.asdict().items():
+            if key not in formatted_results[f"{software_name} {software_version}"]:
+                formatted_results[f"{software_name} {software_version}"][key] = []
+            formatted_results[f"{software_name} {software_version}"][key].append(value.toPython())
+
+    return formatted_results
 
 
 if __name__ == '__main__':
