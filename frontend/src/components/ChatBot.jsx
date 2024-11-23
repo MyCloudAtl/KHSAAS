@@ -7,25 +7,25 @@ import './ChatBot.css'; // Import the CSS file for styling
 
 
 // Simulate LLM intent fetching
-const fetchIntentFromLLM = (input) => {
-  return fetch('http://127.0.0.1:5000/get_intent', {
-    method: 'POST',
-    body: JSON.stringify({ query: input }),
-    headers: { 'Content-Type': 'application/json' },
-  })
-    .then((response) => response.json())
-    .then((data) => data.intent);
-};
+// const fetchIntentFromLLM = (input) => {
+//   return fetch('http://127.0.0.1:5000/get_intent', {
+//     method: 'POST',
+//     body: JSON.stringify({ query: input }),
+//     headers: { 'Content-Type': 'application/json' },
+//   })
+//     .then((response) => response.json())
+//     .then((data) => data.intent);
+// };
 
-const processUserQuery = (input) => {
-  return fetch('http://127.0.0.1:5000/process_query', {
-    method: 'POST',
-    body: JSON.stringify({ query: input }),
-    headers: { 'Content-Type': 'application/json' },
-  })
-    .then((response) => response.json())
-    .then((data) => data.sparqleq);
-};
+// const processUserQuery = (input) => {
+//   return fetch('http://127.0.0.1:5000/process_query', {
+//     method: 'POST',
+//     body: JSON.stringify({ query: input }),
+//     headers: { 'Content-Type': 'application/json' },
+//   })
+//     .then((response) => response.json())
+//     .then((data) => data.sparqleq);
+// };
 
 const ChatBot = () => {
   const [userInput, setUserInput] = useState('');
