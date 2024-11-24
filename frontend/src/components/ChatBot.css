@@ -1,0 +1,169 @@
+/* Main container */
+.main-container {
+  display: flex;
+  flex-direction: column; /* Stack note container above the chat container */
+  height: 100vh; /* Full height of the viewport */
+  padding: 10px;
+  font-family: Arial, sans-serif;
+}
+
+/* Note container - appears above the chatbox */
+.note-container {
+  background-color: #f0f0f0;
+  padding: 15px;
+  margin-bottom: 4px; /* Space between note and chat container */
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  font-style: italic;
+  font-size: 14px;
+  color: #555;
+  text-align: center;
+}
+
+
+/* chatbox- container styling */
+.container {
+  display: flex;
+  flex-direction: row; /* Stack children vertically */
+  justify-content: space-between;
+  height: 100%; /* Set full height of viewport */
+  padding: 20px;
+  font-family: Arial, sans-serif;
+  gap: 20px; /* Optional spacing between elements in the container */
+}
+
+
+/* Go Homepage button styling */
+.go-homepage-btn {
+  width: 20%;
+  height: 50%;
+  padding: 5px;
+  background-color: #4c82af;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  margin-bottom: 1px; /* Space between button and chatbox */
+  font-size: 16px;
+  
+  text-align: center; /* Optional: Center text in the button */
+}
+
+/* Optional: Hover effect for the button */
+.go-homepage-btn:hover {
+  background-color: #5345a0;
+}
+
+/* Chatbox */
+.chatbox {
+  width: 30%;
+  height: 70%; /* Set a fixed height for consistent scrolling */ 
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  background-color: #f9f9f9;
+  box-sizing: border-box; /* Ensure padding is included in dimensions */
+  justify-content: space-between; /* Distribute space between messages and input section */
+  overflow: scroll;
+}
+
+/* Chat messages styling */
+#chat-messages {
+  flex: 1;
+  overflow-y: auto; /* Add vertical scrolling if content exceeds height */
+  margin-bottom: 200px;
+  padding: 10px;
+  background-color: #fff;
+  border: 10px solid #ccc;
+  border-radius: 5px;
+  scroll-behavior: smooth; /* Enable smooth scrolling */
+}
+
+.message {
+  margin: 5px 0;
+  padding: 10px;
+  border-radius: 8px;
+  max-width: 75%;
+}
+
+/* Distinct styles for user and bot messages */
+.user {
+  align-self: flex-end;
+  background-color: #d3d1f7;
+  text-align: right;
+}
+
+.bot {
+  align-self: flex-start;
+  background-color: #f1f1f1;
+}
+
+/* User input section */
+.user-input-section {
+  display: flex;
+  gap: 10px;
+  background-color: #fff;
+  padding: 1px;
+}
+
+textarea {
+  flex-grow: 1;
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  resize: none;
+}
+
+button {
+  padding: 10px 15px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  cursor: pointer;
+  background-color: #4c82af;
+  color: #fff;
+}
+
+button:hover {
+  background-color: #0056b3;
+}
+
+/* Buttons for Yes/No */
+.chat-buttons {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  margin-top: 10px;
+}
+
+.chat-buttons button {
+  padding: 8px 16px;
+  border-radius: 5px;
+  cursor: pointer;
+  background-color: #007bff;
+  color: white;
+  border: none;
+}
+
+.chat-buttons button:hover {
+  background-color: #0056b3;
+}
+
+/* Results Section */
+.graph-area {
+  flex-direction: row;
+  width: 65%; /* Adjust width to balance layout with chatbox */
+  min-height: 70%; 
+  max-height: 90%;
+  border: 1px solid #ccc; /* Add border */
+  border-radius: 8px; /* Rounded corners */
+  padding: 15px; /* Inner padding */
+  background-color: #f9f9f9; /* Match chatbox background */
+  display: flex; /* Optional: align graph content */
+  justify-content: center; /* Center graph horizontally */
+  align-items: center; /* Center graph vertically */
+  overflow: auto; /* Allow scrolling for overflowing content */
+  white-space: pre-wrap; /* Prevent horizontal overflow by wrapping text */
+  word-break: break-word; /* Break long words/keys to avoid overflow */
+}
