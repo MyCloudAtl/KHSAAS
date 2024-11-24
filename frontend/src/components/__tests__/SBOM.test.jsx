@@ -1,5 +1,3 @@
-// FILE: frontend/src/components/SBOM.test.jsx
-
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom/extend-expect';
 import axios from 'axios';
