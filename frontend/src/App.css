@@ -1,7 +1,9 @@
 #root {
-  max-width: 1280px;
-  margin: 0 auto;
-  padding: 2rem;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  border: 10px;
   text-align: center;
 }
 
@@ -48,6 +50,8 @@
     max-width: 100%;
     margin: 0 auto;
     padding: 20px;
+    margin-top: 10%;
+    margin-bottom: 10%;
     background-color: #114a1e6a;
     border-radius: 8px;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
@@ -92,8 +96,12 @@ button {
   border: 5px solid rgb(29, 89, 52);
   color: white;
   width: 100%;
+  padding: 10px 20px;
   cursor: pointer; 
   transition: background-color 0.3s ease, border-color 0.3s ease;
+  display: block;
+  margin: 10px auto; 
+  width: auto
 }
 
 .submit-button:hover {
@@ -107,34 +115,38 @@ button {
     cursor: not-allowed;
 }
 
-/* Form and Input */
 .product-form {
     margin-bottom: 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center; 
+    width: 100%;
 }
 
 .form-group {
   margin-bottom: 15px;
   display: flex;
-  flex-direction: column; /* Stack label and input vertically */
-  align-items: center; /* Center content horizontally */
-  width: 100%; /* Ensure the form-group takes up the full container width */
+  flex-direction: column;
+  align-items: center; 
+  width: 100%; 
 }
 
 .form-group label {
   font-size: 14px;
   color: #555;
-  margin-bottom: 5px; /* Add some space between label and input */
+  margin-bottom: 5px; 
   text-align: center;
 }
 
 .input-field {
-  width: 100%; /* Make sure input fields take full width of their parent */
-  max-width: 100%; /* Ensure no overflow */
+  width: 100%; 
+  max-width: 100%; 
   padding: 10px;
   font-size: 16px;
   border: 1px solid #ccc;
   border-radius: 4px;
-  box-sizing: border-box; /* Prevent padding from overflowing input */
+  box-sizing: border-box; 
+  text-align: center;
 }
 
 .input-field:focus {
@@ -143,7 +155,6 @@ button {
   box-shadow: 0 0 5px rgba(53, 158, 53, 0.5);
 }
 
-/* Data Cards */
 .sbom-data-card, .recommendation-card {
     background-color: #ffffff;
     border-radius: 8px;
@@ -166,12 +177,10 @@ button {
     font-weight: bold;
 }
 
-/* SBOM Item */
 .sbom-item {
     margin-bottom: 15px;
 }
 
-/* Loading and Error Messages */
 .loading-text {
     text-align: center;
     font-size: 18px;
@@ -188,15 +197,14 @@ button {
     text-align: center;
 }
 
-/* Separator */
 hr {
     border: 0;
     border-top: 1px solid #eee;
     margin: 15px 0;
 }
 .scrollable-data {
-  max-height: 300px; /* Set a height limit */
-  overflow-y: auto; /* Enable vertical scrolling */
+  max-height: 300px; 
+  overflow-y: auto; 
   background-color: #fff;
   padding: 10px;
   border-radius: 8px;
@@ -213,7 +221,19 @@ hr {
   border-bottom: none;
 }
 
+.scrollable-data h3 {
+  position: sticky;  
+  top: 0;          
+  background-color: #ffefbaf8; 
+  border: 3px solid #359e35;
+  padding: 10px;     
+  z-index: 10;       
+  margin-top: 0;    
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.26); 
+}
 
-
-
-
+@media (max-width: 450px) {
+  .sbom-container{
+    margin-top: 0px;
+    margin-bottom: 0px;
+}}

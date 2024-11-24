@@ -31,11 +31,11 @@ const Home = () => {
                 </Link>
             </section>
 
-            <section className="section">
+            {/* <section className="section">
                 <Link to='/Report'>
                     <button className="home-button">Report Risk</button>
                 </Link>
-            </section>
+            </section> */}
         </div>
     );
 };
