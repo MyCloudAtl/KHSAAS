@@ -3,29 +3,39 @@ import './ChatBot.css'; // Import the CSS file for styling
 
 //TODs:
 //1. fix auto-scroll down effect. Not working currently when messages are exchanged
-//2. Provide homepage url
 
 
 // Simulate LLM intent fetching
-// const fetchIntentFromLLM = (input) => {
-//   return fetch('http://127.0.0.1:5000/get_intent', {
-//     method: 'POST',
-//     body: JSON.stringify({ query: input }),
-//     headers: { 'Content-Type': 'application/json' },
-//   })
-//     .then((response) => response.json())
-//     .then((data) => data.intent);
-// };
+const fetchIntentFromLLM = async (input) => {
+    try {
+      const response = await fetch('http://127.0.0.1:5000/get_intent', {
+        method: 'POST',
+        body: JSON.stringify({ query: input }),
+        headers: { 'Content-Type': 'application/json' },
+      });
+      const data = await response.json();
+      return data.intent;  // Return the intent
+    } catch (error) {
+      console.error('Error fetching intent:', error);
+      throw error;  // Re-throw or handle the error as needed
+    }
+  };
 
-// const processUserQuery = (input) => {
-//   return fetch('http://127.0.0.1:5000/process_query', {
-//     method: 'POST',
-//     body: JSON.stringify({ query: input }),
-//     headers: { 'Content-Type': 'application/json' },
-//   })
-//     .then((response) => response.json())
-//     .then((data) => data.sparqleq);
-// };
+// Async function to process user query and fetch sparql query
+const processUserQuery = async (input) => {
+    try {
+      const response = await fetch('http://127.0.0.1:5000/process_query', {
+        method: 'POST',
+        body: JSON.stringify({ query: input }),
+        headers: { 'Content-Type': 'application/json' },
+      });
+      const data = await response.json();
+      return data.sparql_result;  // Return the SPARQL query results
+    } catch (error) {
+      console.error('Error processing user query:', error);
+      throw error;  // Re-throw or handle the error as needed
+    }
+  };
 
 const ChatBot = () => {
   const [userInput, setUserInput] = useState('');
@@ -80,7 +90,7 @@ const ChatBot = () => {
   const confirmIntentWithUser = (intent) => {
     setMessages((prevMessages) => [
       ...prevMessages,
-      { sender: 'Bot', text: `Did you mean: ${intent}?`, type: 'text' },
+      { sender: 'Bot', text: `${intent}`, type: 'text' },
       { sender: 'Bot', type: 'buttons', intent },
     ]);
   };
