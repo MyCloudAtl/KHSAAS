@@ -3,7 +3,7 @@
   display: flex;
   flex-direction: column; /* Stack note container above the chat container */
   height: 100vh; /* Full height of the viewport */
-  padding: 10px;
+  padding: 5px;
   font-family: Arial, sans-serif;
 }
 
@@ -56,8 +56,8 @@
 
 /* Chatbox */
 .chatbox {
-  width: 30%;
-  height: 70%; /* Set a fixed height for consistent scrolling */ 
+  width: 40%;
+  height: 60%; /* Set a fixed height for consistent scrolling */ 
   border: 1px solid #ccc;
   border-radius: 8px;
   padding: 10px;
@@ -74,7 +74,7 @@
   flex: 1;
   overflow-y: auto; /* Add vertical scrolling if content exceeds height */
   margin-bottom: 200px;
-  padding: 10px;
+  padding: 1px;
   background-color: #fff;
   border: 10px solid #ccc;
   border-radius: 5px;
@@ -153,17 +153,35 @@ button:hover {
 /* Results Section */
 .graph-area {
   flex-direction: row;
-  width: 65%; /* Adjust width to balance layout with chatbox */
-  min-height: 70%; 
+  width: 55%; /* Adjust width to balance layout with chatbox */
+  min-height: auto; /* Auto-adjust for content height */
   max-height: 90%;
   border: 1px solid #ccc; /* Add border */
   border-radius: 8px; /* Rounded corners */
   padding: 15px; /* Inner padding */
   background-color: #f9f9f9; /* Match chatbox background */
-  display: flex; /* Optional: align graph content */
-  justify-content: center; /* Center graph horizontally */
-  align-items: center; /* Center graph vertically */
-  overflow: auto; /* Allow scrolling for overflowing content */
+  display: flex;
+  justify-content: flex-start; /* Align horizontally if needed */
+  align-items: flex-start; /* Align content to the top */
+  overflow-y: scroll; /* Always show vertical scrollbar when necessary */
   white-space: pre-wrap; /* Prevent horizontal overflow by wrapping text */
   word-break: break-word; /* Break long words/keys to avoid overflow */
+}
+
+/* Style for the title at the top */
+.graph-area h3 {
+  font-size: 1.5em;
+  margin-bottom: 10px;
+  color: #333;
+}
+
+/* Style for the list of results */
+.graph-area ul {
+  list-style-type: disc;
+  padding-left: 20px;
+}
+
+.graph-area li {
+  font-size: 1.1em;
+  margin-bottom: 5px;
 }

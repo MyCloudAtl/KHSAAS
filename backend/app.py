@@ -11,7 +11,7 @@ from routes.sbom_routes import sbom_bp
 from services.sbom_service import SBOMService 
 from utils.data_loader import load_products
 from flask_cors import CORS
-from llm.intent import handle_intent, SoftwareQuery
+#from llm.intent import handle_intent, SoftwareQuery
 import os
 import langchainIntegration 
 # Load the products from the CSV
@@ -174,7 +174,7 @@ def get_intent():
         return jsonify({"error": "No input provided"}), 400
     try:
         result = langchainIntegration.fetchIntent(user_input)
-        print(result)
+        print("line 177",result)
         return result
     except Exception as e:
         # Handle exceptions and return an error response
@@ -195,21 +195,27 @@ def process_query():
     try:
         query_para = langchainIntegration.process_userinput(user_input)
         print("line 200:", query_para)
+        # Check if `query_para` returns an error (e.g., unable to extract software name or version)
+        if "error" in query_para and query_para["error"] == "Unable to extract software name or version from input.":
+            return jsonify({"sparql_result": "No results can be fetched from the provided input."})
+
         software_name = query_para["SoftwareName"]
         version = query_para["Version"]
-        if query_para["type"] =="dependencies":
+        if query_para["type"] =="dependencies" or query_para["type"] =="dependency":
             print("line204:")
-            sparql_result =sbom_service.get_dependencies(software_name ,version)
-            print("result on line 206: ", sparql_result)
-            if sparql_result is None:
+            sparql_result =sbom_service.get_dependencies_bot(software_name )
+            print("result on line 206: ", sparql_result)     
+            if not sparql_result:
                 return jsonify({"sparql_result":"No Dependencies found for specified software." })
-            return jsonify({"sparql_result":sparql_result})
-        elif query_para["type"] =="vulnerabilities":
-            sparql_result =sbom_service.get_vulnerabilities(software_name ,version)
+            results_title = f"Dependencies for {software_name} "
+            return jsonify({"results_title":results_title, "sparql_result":sparql_result})
+        elif query_para["type"] =="vulnerabilities" or query_para["type"] =="vulnerability":
+            sparql_result =sbom_service.get_vulnerabilities_bot(software_name )
             print("result on line 206: ", sparql_result)
-            if sparql_result is None:
+            if not sparql_result:
                 return jsonify({"sparql_result":"No Vulnerabilities found for specified software. "})
-            return jsonify({"sparql_result":sparql_result})
+            results_title = f"Vulnerabilities for {software_name} "
+            return jsonify({"results_title":results_title, "sparql_result":sparql_result})
     except Exception as e:
         # Handle exceptions and return an error response
         return jsonify({'error': str(e)}), 500
