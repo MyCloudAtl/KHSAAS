@@ -1,88 +1,98 @@
-import React, { useState, useEffect } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
-import axios from 'axios';
+import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import axios from "axios";
 
 const SBOM = () => {
-    const [sbomData, setSbomData] = useState([]);
-    const [recData, setRecData] = useState([]);
-    const navigate = useNavigate();
-    const location = useLocation();
-    const [loading, setLoading] = useState(false);
-    const [error, setError] = useState('');
-    const [productName, setProductName] = useState('');
-    const [suggestedProducts, setSuggestedProducts] = useState([]);
+  const [sbomData, setSbomData] = useState([]);
+  const [recData, setRecData] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [productName, setProductName] = useState("");
 
-    const handleProductNameChange = (e) => {
-        setProductName(e.target.value);
-    };
+  const navigate = useNavigate();
 
-    const handleSubmit = async (e) => {
-        e.preventDefault();
-        if (!productName) return;
-        const encodedProduct = encodeURIComponent(productName.toLowerCase());  // URL-encode the product name
-        setLoading(true);
-        setError('');
-        try {
-            const response = await axios.get(`http://localhost:5000/api/sbom/${encodedProduct}`);
-            console.log(response);
-            const sbomItem = response.data.sbomData[0];
-            setSbomData(sbomItem);
-            const recItem = response.data.recData[0];
-            setRecData(recItem);
-            if (response.data.error) {
-                throw new Error(response.data.error);
-            }
-        } catch (err) {
-            setError('Failed to fetch SBOM data.');
-        } finally {
-            setLoading(false);
-        }
-    };    
+  const handleProductNameChange = (e) => setProductName(e.target.value);
 
-    return (
-        <div className="sbom-container">
-        <button className="home-button" onClick={() => navigate('/')}>Return Home</button>
-        <h2>SBOM Details</h2>
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (!productName) return;
 
-        <form onSubmit={handleSubmit} className="product-form">
-            <div className="form-group">
-                <label htmlFor="productName">Product Name</label>
-                <input
-                    type="text"
-                    id="productName"
-                    value={productName}
-                    onChange={handleProductNameChange}
-                    placeholder="Enter product name"
-                    required
-                    className="input-field"
-                />
+    setLoading(true);
+    setError("");
+    try {
+      const response = await axios.get(
+        `http://localhost:5000/api/sbom/${encodeURIComponent(productName)}`
+      );
+
+      if (response.data.error) throw new Error(response.data.error);
+
+      setSbomData(response.data.sbomData);
+      setRecData(response.data.recData);
+    } catch (err) {
+      setError("Failed to fetch SBOM data.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="sbom-container">
+      <button className="home-button" onClick={() => navigate("/")}>
+        Return Home
+      </button>
+      <h2>SBOM Details</h2>
+
+      <form onSubmit={handleSubmit} className="product-form">
+        <div className="form-group">
+          <label htmlFor="productName">Product Name</label>
+          <input
+            type="text"
+            id="productName"
+            value={productName}
+            onChange={handleProductNameChange}
+            placeholder="Enter product name"
+            required
+            className="input-field"
+          />
+        </div>
+        <button type="submit" className="submit-button" disabled={loading}>
+          Get SBOM Data
+        </button>
+      </form>
+
+      {loading && <p className="loading-text">Loading...</p>}
+      {error && <div className="error-message">{error}</div>}
+
+      {sbomData.length > 0 && (
+        <div className="scrollable-data">
+          <h3>SBOM Data for {productName}</h3>
+          {sbomData.map((item, index) => (
+            <div key={index} className="sbom-item">
+              <p><strong>Software Version:</strong> {item.softwareVersion}</p>
+              <p><strong>Dependency On:</strong> {item.dependency}</p>
+              <p><strong>Vulnerability:</strong> {item.vulnerability}</p>
+              <hr />
             </div>
-            <button type="submit" className="submit-button" disabled={loading}>Get SBOM Data</button>
-        </form>
+          ))}
+        </div>
+      )}
 
-        {loading && <p className="loading-text">Loading...</p>}
-        {error && <div className="error-message">{error}</div>}
-
-        {sbomData && (
-            <div className="sbom-data-card">
-                <h3>SBOM Data for {productName}</h3>
-                <p><strong>Software Version:</strong> {sbomData.softwareVersion}</p>
-                <p><strong>Dependency On:</strong> {sbomData.dependency}</p>
-                <p><strong>Vulnerability:</strong> {sbomData.vulnerability}</p>
+      {recData.length > 0 && (
+        <div className="scrollable-data">
+          <h3>Safe {productName} Versions</h3>
+          {recData.map((item, index) => (
+            <div key={index} className="recommendation-item">
+              <p><strong>Recommended Version:</strong> {item.softwareVersion}</p>
             </div>
-        )}
-
-        {recData && (
-            <div className="recommendation-card">
-                <h3>Safe {productName} Versions</h3>
-                <p><strong>Recommended Version:</strong> {recData.softwareVersion}</p>
-            </div>
-        )}
+          ))}
+        </div>
+      )}
     </div>
-);
+  );
 };
 
 export default SBOM;
+
 
 
 

@@ -40,14 +40,18 @@
 .read-the-docs {
   color: #888;
 }
+.App-container {
+  max-width: 1280px;
+}
 
 .sbom-container {
-    max-width: 800px;
+    max-width: 100%;
     margin: 0 auto;
     padding: 20px;
     background-color: #114a1e6a;
     border-radius: 8px;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    text-align: center;
 }
 
 h2 {
@@ -68,9 +72,13 @@ button {
     background-color: rgb(29, 89, 52);
     border: 5px solid rgb(29, 89, 52);
     color: white;
+    padding: 10px 20px;
     width: 100%;
     cursor: pointer; 
     transition: all 0.3s ease;
+    width: auto;
+    margin: 0 auto; 
+    display: block;
 }
 .home-button:hover {
     background-color: #359e35; 
@@ -105,20 +113,34 @@ button {
 }
 
 .form-group {
-    margin-bottom: 15px;
+  margin-bottom: 15px;
+  display: flex;
+  flex-direction: column; /* Stack label and input vertically */
+  align-items: center; /* Center content horizontally */
+  width: 100%; /* Ensure the form-group takes up the full container width */
 }
 
-label {
-    font-size: 14px;
-    color: #555;
+.form-group label {
+  font-size: 14px;
+  color: #555;
+  margin-bottom: 5px; /* Add some space between label and input */
+  text-align: center;
 }
 
 .input-field {
-    width: 100%;
-    padding: 8px;
-    font-size: 16px;
-    border: 1px solid #ccc;
-    border-radius: 4px;
+  width: 100%; /* Make sure input fields take full width of their parent */
+  max-width: 100%; /* Ensure no overflow */
+  padding: 10px;
+  font-size: 16px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  box-sizing: border-box; /* Prevent padding from overflowing input */
+}
+
+.input-field:focus {
+  outline: none;
+  border-color: #359e35;
+  box-shadow: 0 0 5px rgba(53, 158, 53, 0.5);
 }
 
 /* Data Cards */
@@ -172,6 +194,25 @@ hr {
     border-top: 1px solid #eee;
     margin: 15px 0;
 }
+.scrollable-data {
+  max-height: 300px; /* Set a height limit */
+  overflow-y: auto; /* Enable vertical scrolling */
+  background-color: #fff;
+  padding: 10px;
+  border-radius: 8px;
+  margin-top: 20px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.sbom-item, .recommendation-item {
+  padding: 10px;
+  border-bottom: 1px solid #ddd;
+}
+
+.sbom-item:last-child, .recommendation-item:last-child {
+  border-bottom: none;
+}
+
 
 
 
