@@ -108,6 +108,7 @@ def fetchIntent(user_input):
     except Exception as e:
         return jsonify({"error": f"LLM processing failed: {str(e)}"}), 500
      # Return the detected intent
+    user_intent = re.sub(r"(dependencies|vulnerabilities):", r"\1", user_intent)
     print("line108",user_intent)
     return jsonify({"intent": user_intent})
 
@@ -140,6 +141,9 @@ def extractUserIntent(user_input):
 
 #this is an alternative with limited capabilities of gpt-2. 
 def extractSoftware(user_input):
+    # Replace specific words followed by a colon (e.g., dependencies:, vulnerabilities:) with their respective names without the colon
+    user_input = re.sub(r"(dependencies|vulnerabilities):", r"\1", user_input)
+    print("colon processed",user_input)
     doc = nlp(user_input)
     framework = None
     version = None
@@ -153,7 +157,7 @@ def extractSoftware(user_input):
         version_position = user_input.find(version)
         text_before_version = user_input[:version_position].strip()
         framework = text_before_version.split()[-1]  # Get the last word before the version
-        framework =getTypoCorrected(framework)
+        #framework =getTypoCorrected(framework)
 
     if framework and version:
         # return tuple with framework and version
@@ -169,6 +173,7 @@ def getTypoCorrected(softwarename):
 
 
 def process_userinput(user_input):  
+    print("I enter process_userinput")
     sparql_result =""
     if LLM_type == "lower":
         query_para = get_sparql_para(user_input)   
@@ -182,6 +187,7 @@ def process_userinput(user_input):
 #TODO: Modify version extraction.once version extraction is modified, modify the hardcoded value from this function
 def get_sparql_para(verified_intent):
     #extract software_name and software_intent
+    print("I enter get_sparql_para")
     match = re.search(r"dependencies for (\w+)\s+([\d.]+)|vulnerabilities for (\w+)\s+([\d.]+)", verified_intent, re.IGNORECASE)
     if match:
         software_name = match.group(1) or match.group(3)

@@ -48,8 +48,7 @@ class SBOMService:
         WHERE {{
             ?software a sc:Software .
             ?software schema:name "{software_name}" .
-            ?software sc:hasSoftwareVersion ?softwareVersion .
-            ?softwareVersion sc:versionName "{software_version}" .
+            ?software sc:hasSoftwareVersion ?softwareVersion .           
             ?softwareVersion sc:dependsOn ?dependency .
         }}
         """
@@ -82,8 +81,7 @@ class SBOMService:
         WHERE {{
             ?software a sc:Software .
             ?software schema:name "{software_name}" .
-            ?software sc:hasSoftwareVersion ?softwareVersion .
-            ?softwareVersion sc:versionName "{software_version}" .
+            ?software sc:hasSoftwareVersion ?softwareVersion .         
             ?softwareVersion sc:vulnerableTo ?vulnerability .
         }}
         """
@@ -174,6 +172,83 @@ class SBOMService:
 
         except Exception as e:
             logging.error(f"Error generating recommendation: {e}", exc_info=True)
+            return "Hey nothing here"
+
+
+    def get_dependencies_bot(self, product_name):
+        limit = 10000
+        try:
+            logging.info(f"Generating full dependencies for {product_name}")
+            query = f"""
+            PREFIX sc: <https://w3id.org/secure-chain/>
+            PREFIX schema: <http://schema.org/>
+
+            SELECT ?dependency 
+            WHERE {{
+                ?lib schema:name "{product_name}" .
+                ?lib sc:hasSoftwareVersion ?version .
+                ?dependency sc:dependsOn+ ?version .              
+            }}  
+            LIMIT {limit} 
+            """
+            logging.debug(f"Generated query: {query}")
+            results = self.sparql_client.query(query)
+            if results and 'results' in results and 'bindings' in results['results']:
+                sbom_data = []
+                for binding in results['results']['bindings']:
+                    dependency_uri = binding.get('dependency', {}).get('value', '')
+                    version_uri = binding.get('version', {}).get('value', '')
+                    
+                    sbom_data.append({
+                        'dependency': self.format_dependency(dependency_uri),
+                        'softwareVersion': self.format_dependency(version_uri),
+                     
+                    })
+                return sbom_data
+            else:
+                logging.debug("No SBOM found.")
+                return []
+
+        except Exception as e:
+            logging.error(f"Error generating SBOM: {e}", exc_info=True)
+            return "Hey nothing here"
+
+    def get_vulnerabilities_bot(self, product_name):
+        limit = 10000
+        try:
+            logging.info(f"Generating full SBOM for {product_name}")
+            query = f"""
+            PREFIX sc: <https://w3id.org/secure-chain/>
+            PREFIX schema: <http://schema.org/>
+
+            SELECT ?version ?cve
+            WHERE {{
+                ?lib schema:name "{product_name}" .
+                ?lib sc:hasSoftwareVersion ?version .            
+                ?dependency sc:vulnerableTo ?cve .
+            }} 
+            LIMIT {limit} 
+            """
+            logging.debug(f"Generated query: {query}")
+            results = self.sparql_client.query(query)
+            if results and 'results' in results and 'bindings' in results['results']:
+                sbom_data = []
+                for binding in results['results']['bindings']:
+                    
+                    version_uri = binding.get('version', {}).get('value', '')
+                    cve_uri = binding.get('cve', {}).get('value', '')
+                    sbom_data.append({
+                        
+                        'softwareVersion': self.format_dependency(version_uri),
+                        'vulnerability': self.format_vulnerability(cve_uri),
+                    })
+                return sbom_data
+            else:
+                logging.debug("No SBOM found.")
+                return []
+
+        except Exception as e:
+            logging.error(f"Error generating SBOM: {e}", exc_info=True)
             return "Hey nothing here"
 
 
