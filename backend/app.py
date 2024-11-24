@@ -13,7 +13,7 @@ from utils.data_loader import load_products
 from flask_cors import CORS
 from llm.intent import handle_intent, SoftwareQuery
 import os
-
+import langchainIntegration 
 # Load the products from the CSV
 products_df = load_products('data/products_versions.csv').drop_duplicates(subset=['product', 'version'])
 # products_df2 = products_df.iloc[0:1000]
@@ -162,5 +162,57 @@ def dashboard():
         # Handle exceptions and return an error response
         return jsonify({'error': str(e)}), 500
 
+@app.route('/get_intent', methods=['POST'])
+def get_intent():
+    # Check if request contains JSON
+    if not request.is_json:
+        return jsonify({"error": "Request must be JSON"}), 415
+    data = request.json
+    user_input = data.get("query", "")
+    print("174:", user_input)
+    if not user_input:
+        return jsonify({"error": "No input provided"}), 400
+    try:
+        result = langchainIntegration.fetchIntent(user_input)
+        print(result)
+        return result
+    except Exception as e:
+        # Handle exceptions and return an error response
+        return jsonify({'error': str(e)}), 500
+
+
+# Function to generate and process SPARQL query from user input.
+@app.route('/process_query', methods=['POST'])
+def process_query():
+    # Check if request contains JSON
+    if not request.is_json:
+        return jsonify({"error": "Request must be JSON"}), 415
+
+    data = request.json
+    user_input = data.get("query", "")
+    if not user_input:
+        return jsonify({"error": "No input provided"}), 400
+    try:
+        query_para = langchainIntegration.process_userinput(user_input)
+        print("line 200:", query_para)
+        software_name = query_para["SoftwareName"]
+        version = query_para["Version"]
+        if query_para["type"] =="dependencies":
+            print("line204:")
+            sparql_result =sbom_service.get_dependencies(software_name ,version)
+            print("result on line 206: ", sparql_result)
+            if sparql_result is None:
+                return jsonify({"sparql_result":"No Dependencies found for specified software." })
+            return jsonify({"sparql_result":sparql_result})
+        elif query_para["type"] =="vulnerabilities":
+            sparql_result =sbom_service.get_vulnerabilities(software_name ,version)
+            print("result on line 206: ", sparql_result)
+            if sparql_result is None:
+                return jsonify({"sparql_result":"No Vulnerabilities found for specified software. "})
+            return jsonify({"sparql_result":sparql_result})
+    except Exception as e:
+        # Handle exceptions and return an error response
+        return jsonify({'error': str(e)}), 500
+        
 if __name__ == '__main__':
     app.run(debug=True)
