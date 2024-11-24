@@ -1,4 +1,3 @@
-/* Base Styles */
 body {
     font-family: Arial, sans-serif;
     margin: 0;
@@ -7,11 +6,8 @@ body {
     overflow-x: hidden;
 }
 
-/* Landing Page Layout */
 .Landing-Page {
-    /* display: grid; */
-    /* grid-template-rows: auto 1fr; */
-    /* grid-template-columns: 0.1fr; */
+    width:100vw;
     height: 100vh;
     align-items: center;
     justify-items: center;
@@ -20,7 +16,6 @@ body {
     transition: background-color 0.5s ease;
 }
 
-/* Hero Section */
 .hero {
     background: linear-gradient(180deg, #FFEFBA, #FFFFFF);
     color: white;
@@ -29,6 +24,7 @@ body {
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
     transform: rotate3d(1, 1, 1, 5deg);
     animation: heroAnim 5s ease-in-out infinite;
+    text-shadow: 2px 2px 5px rgba(0, 0, 0, 0.3);
 }
 @keyframes heroAnim {
     0% { transform: rotate3d(1, 1, 1, 5deg); }
@@ -36,7 +32,6 @@ body {
     100% { transform: rotate3d(1, 1, 1, 5deg); }
 }
 
-/* Typing Animation */
 .animated-headline {
     font-size: 3rem;
     font-weight: bold;
@@ -51,7 +46,6 @@ body {
     to { width: 100%; }
 }
 
-/* Theme Toggle Button */
 .theme-toggle {
     margin-top: 2rem;
     padding: 0.5rem 2rem;
@@ -70,17 +64,30 @@ body {
     color: white;
 }
 
-/* Dark Mode */
 body.dark {
     background-color: #121212;
     color: #f1f1f1;
 }
-
+.Landing-Page.dark {
+    width: 100vw;
+    animation: gradientShift 3s ease infinite;
+    color: #f1f1f1;
+}
+@keyframes gradientShift {
+    0% {
+        background: linear-gradient(45deg, #2c3e50, #bdc3c7);
+    }
+    50% {
+        background: linear-gradient(45deg, #bdc3c7, #2c3e50);
+    }
+    100% {
+        background: linear-gradient(45deg, #2c3e50, #bdc3c7);
+    }
+}
 .Landing-Page.dark .hero {
-    background: linear-gradient(135deg, #4286f4, #373B44);
+    background: linear-gradient(180deg, #bdc3c7, #2c3e50);
 }
 
-/* Section Layout */
 .section {
     display: flex;
     justify-content: center;
@@ -88,13 +95,13 @@ body.dark {
     margin-bottom: 10px;
     width: 100%;
     align-items: center;
+    flex-wrap: wrap;
 }
 
 .sbom-item:last-child, .recommendation-item:last-child {
     border-bottom: none;
 }
 
-/* Scroll-triggered Animations with AOS */
 [data-aos="fade-in"] {
     opacity: 0;
     transition: opacity 1s ease-in-out;
@@ -103,11 +110,13 @@ body.dark {
 [data-aos="fade-in"].aos-animate {
     opacity: 1;
 }
-/* Action Button with Reduced Scale Effect */
+
 .home-button {
     margin: 10px;
     padding: 0.5rem 2rem;
     font-size: 1.2rem;
+    color: #636363;
+    background-color: #FFEFBA;
     cursor: pointer;
     border: none;
     border-radius: 5px;
@@ -123,11 +132,9 @@ body.dark {
     border: 3px solid #359e35;
     color: white;
     box-shadow: 0 0 15px rgba(255, 255, 255, 0.5);
-    /* Remove scale effect if the text is shaking */
-    transform: none; /* No scaling */
+    transform: none; 
 }
 
-/* Interactive Button Effects */
 .home-button:hover {
     background-color: #359e35;
     border: 3px solid #359e35;
@@ -137,36 +144,19 @@ body.dark {
     transform-origin: center;
 }
 
-/* Light/Dark Mode Button Styles */
 .theme-toggle {
     background-color: #444;
     color: white;
 }
 
-/* Dark Mode Adjustments */
 body.dark .theme-toggle {
     background-color: #ccc;
     color: #333;
 }
-
-/* Pseudo-elements for Decorative Effects */
-.Landing-Page::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: 10px;
-    background: linear-gradient(135deg,  #FFEFBA, #FFFFFF);
-    animation: gradientAnim 5s ease-in-out infinite;
+header{
+    margin-top: 10%;
 }
 
-@keyframes gradientAnim {
-    0% { background-position: 0% 0%; }
-    100% { background-position: 100% 100%; }
-}
-
-/* Container for Centering */
 .container {
     display: flex;
     justify-content: center;
@@ -176,21 +166,45 @@ body.dark .theme-toggle {
     overflow: hidden;
 }
 
-/* Global Animation for Interactive Hover Effects */
 @keyframes glow {
     0% { box-shadow: 0 0 5px rgba(255, 255, 255, 0.5); }
-    50% { box-shadow: 0 0 20px rgba(113, 255, 139, 0.5); }
+    50% { box-shadow: 0 0 20px rgba(113, 255, 139, 0.562); }
     100% { box-shadow: 0 0 5px rgba(255, 255, 255, 0.5); }
 }
 
-/* Button Hover Glow */
 .home-button:hover {
     animation: glow 1.5s ease-in-out infinite;
 }
-@media (max-width: 680px) {
+@media (max-width: 450px) {
+    .Landing-Page {
+        padding: 1rem; 
+    }
+
+    .hero {
+        padding: 4rem 1rem; 
+    }
+
+    .animated-headline {
+        font-size: 2rem; 
+    }
+
     .section {
         flex-direction: column;
-        align-items: center; /* Ensure items are aligned properly */
+        justify-content: flex-start;
+    }
+
+    .theme-toggle {
+        font-size: 1rem;
+        padding: 0.5rem 1rem;
+    }
+
+    .section {
+        margin-top: 10px;
+        margin-bottom: 10px;
+    }
+
+    .hero {
+        text-shadow: 1px 1px 4px rgba(0, 0, 0, 0.2); /* Smaller text shadow */
     }
 
     button {
