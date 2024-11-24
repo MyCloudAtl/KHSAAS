@@ -5,8 +5,8 @@
 #HIGHER LEVEL NOTES:gpt-4 can successfully convert user input to sparql query for even advanced query types. This was verified using chatgpt-4.0
 
 from flask import Flask, request, jsonify
-from flask_cors import CORS  # Import CORS
-from rdflib import Graph
+#from flask_cors import CORS  # Import CORS
+#from rdflib import Graph
 #from langchain_community.llms import OpenAI
 from langchain_huggingface import HuggingFaceEndpoint
 import json
@@ -16,16 +16,26 @@ from spellchecker import SpellChecker
 import re
 from rdflib.namespace import Namespace, RDF
 
-app = Flask(__name__)
-CORS(app)
+#app = Flask(__name__)
+#CORS(app)
+
+# Read environment variables from .env file
+#base_url = os.getenv('BASE_URL', 'http://localhost:3030')
+
+# Existing SPARQL client setup
+#SPARQL_ENDPOINT_URL = base_url + '/kg/'
+#SPARQL_UPDATE_ENDPOINT_URL = base_url + '/kg/update'
+#print(f"SPARQL endpoint is {SPARQL_ENDPOINT_URL}")
+
+#sparql_client = SPARQLClient(SPARQL_ENDPOINT_URL, SPARQL_UPDATE_ENDPOINT_URL)
 
 # Load the Turtle file
-graph = Graph()
-graph.parse("securechain.ttl", format="turtle")
-SC = Namespace("https://w3id.org/secure-chain/")
-SCHEMA = Namespace("http://schema.org/")
-graph.bind("sc", SC)
-graph.bind("schema", SCHEMA)
+#graph = Graph()
+#graph.parse("securechain.ttl", format="turtle")
+#SC = Namespace("https://w3id.org/secure-chain/")
+#SCHEMA = Namespace("http://schema.org/")
+#graph.bind("sc", SC)
+#graph.bind("schema", SCHEMA)
 
 
 #NOTE: Switch LLM_type to lower for models lower than gpt-3.
@@ -45,23 +55,18 @@ nlp = spacy.load("en_core_web_sm")
 
 #llm = Ollama(model="llama2")
 
-@app.route('/get_intent', methods=['POST'])
-def fetchIntent():
-    # Check if request contains JSON
-    if not request.is_json:
-        return jsonify({"error": "Request must be JSON"}), 415
 
-    data = request.json
-    user_input = data.get("query", "")
-    if not user_input:
-        return jsonify({"error": "No input provided"}), 400
-
+def fetchIntent(user_input):
+    print("I enter here in langchain for fetchIntent")
     #TODO: add more prompts such that gpt-2 can be trained better
     examples = """
     User: I want to check dependency for React 1.18.
     Assistant: dependencies
 
     User: Show vulnrabilities for React 1.18.
+    Assistant: vulnerabilities
+
+    User:  show vulnerabilities for python 3.
     Assistant: vulnerabilities
 
     User: Provide details about dependencies for XYZ 3.4.0.
@@ -86,6 +91,7 @@ def fetchIntent():
     max_tokens = 20  # Set the maximum number of tokens for the output
     temperature = 0.6  # Adjust temperature for randomness
     top_k = 50  # Limit to the top-k tokens
+
     try:
         response = llm.invoke(prompt,max_length=max_tokens, temperature= temperature, stop=["User:", "Assistant:"],).strip()
         user_intent = response.strip()  # Assuming response is a string
@@ -102,7 +108,7 @@ def fetchIntent():
     except Exception as e:
         return jsonify({"error": f"LLM processing failed: {str(e)}"}), 500
      # Return the detected intent
-
+    print("line108",user_intent)
     return jsonify({"intent": user_intent})
 
 #the following two methods should be used with chatgpt 3 or higher version
@@ -162,28 +168,19 @@ def getTypoCorrected(softwarename):
     return corrected_name
 
 
-# Function to generate SPARQL query from user input. Not only to be used with higher model. WIll not work for gpt-2
-@app.route('/process_query', methods=['POST'])
-def process_userinput():
-    # Check if request contains JSON
-    if not request.is_json:
-        return jsonify({"error": "Request must be JSON"}), 415
-
-    data = request.json
-    user_input = data.get("query", "")
-    if not user_input:
-        return jsonify({"error": "No input provided"}), 400
-    sparql_q =""
+def process_userinput(user_input):  
+    sparql_result =""
     if LLM_type == "lower":
-        sparql_q = generate_spqrql(user_input)   
+        query_para = get_sparql_para(user_input)   
     else:
-        query_q = generate_sparqlhigherModel(user_input)
+        sparql_q = generate_sparqlhigherModel(user_input)
+        query_result = exetcute_query(sparql_q)
     #query_results = exetcute_query(query_q)
-    #return jsonify({"queryResults":query_results}) #when switched to this, modify ChatBot.js file
-    return jsonify({"sparqleq":sparql_q})
+        #return jsonify({"queryResults":query_results}) #when switched to this, modify ChatBot.js file
+    return query_para
 
 #TODO: Modify version extraction.once version extraction is modified, modify the hardcoded value from this function
-def generate_spqrql(verified_intent):
+def get_sparql_para(verified_intent):
     #extract software_name and software_intent
     match = re.search(r"dependencies for (\w+)\s+([\d.]+)|vulnerabilities for (\w+)\s+([\d.]+)", verified_intent, re.IGNORECASE)
     if match:
@@ -191,43 +188,17 @@ def generate_spqrql(verified_intent):
         software_version = match.group(2) or match.group(4)
     else:
         return {"error": "Unable to extract software name or version from input."}
-
+    print("softwareName:", software_name, "Version:",software_version)
     # Step 2: Determine whether to generate query for dependencies or vulnerabilities
-    if "dependencies" in verified_intent.lower():
-        query = f"""
-            PREFIX sc: <https://w3id.org/secure-chain/>
-            PREFIX schema: <http://schema.org/>
-
-            SELECT ?dependency
-            WHERE {{
-                ?software a sc:Software ;
-                     schema:name "{software_name}";
-                     sc:hasSoftwareVersion ?softwareVersion .
-                ?softwareVersion sc:versionName "0.9.1-5" ;
-                     sc:dependsOn ?dependency .
-            }}
-            """
-    
-
+    if "dependencies" in verified_intent.lower(): 
+        querypara_result ={"type":"dependencies", "SoftwareName":software_name, "Version":software_version}     
+        return querypara_result
     #-if verified_intent contains "vulnerabilities" then generate sparqle to get all vulnerabilities for a specified software and version
     elif "vulnerabilities" in verified_intent.lower():
-        query = f"""
-            PREFIX sc: <https://w3id.org/secure-chain/>
-            PREFIX schema: <http://schema.org/>
-
-            SELECT ?vulnerability
-            WHERE {{
-                ?software a sc:Software;
-                    schema:name "{software_name}";
-                    sc:hasSoftwareVersion ?softwareVersion .
-                ?softwareVersion sc:versionName "{software_version}" ;
-                     sc:vulnerableTo ?vulnerability .
-            }}
-            """
+        querypara_result ={"type":"vulnerability", "SoftwareName":software_name, "Version":software_version}     
+        return querypara_result
     else:
         return {"error": "Unrecognized intent. Please specify 'dependencies' or 'vulnerabilities'."}
-    print(query)
-    return query
 
 
 #TODO: provide examples for query formate such that it can be read
@@ -260,50 +231,13 @@ def generate_sparqlhigherModel(verified_intent):
     return sparql_query 
 
 
-
-#TODO - just  call execute query method in process_userinput() method after testing. No need to create a seperate end point
-# Execute the SPARQL query if it's valid
-@app.route('/execute-query', methods=['POST'])
-def execute_querytobereplaced():
-    sparql_query = request.json.get("query","")
-    if sparql_query:
-        try:
-            results = graph.query(sparql_query)
-
-            # Convert results to JSON
-            results_json = [{"predicate": str(row.predicate), "object": str(row.object)} for row in results]
-
-            # TODO: send results back to javascript frontend
-            return jsonify({"results": results_json})
-
-        except Exception as e:
-            return jsonify({"error": f"Error executing SPARQL query: {e}"}), 500
-    else:
-        return jsonify({"error": "No query provided"}), 400
-
-#TODO: fix the formatted results once ttl file can be read 
+#For Higher LLM. TODO Process query results 
 def exetcute_query(query_spark):    
-    results = graph.query(query_spark)
-    print(results)
-    print("Number of triples in the graph:", len(graph))
-    for stmt in graph:
-        print(stmt)
-
-    print("Namespaces in the graph:")
-    for prefix, namespace in graph.namespaces():
-        print(prefix, namespace) 
-           
-    # Format results as a dictionary with software name and version as key and dictionary as a value 
-    formatted_results = {f"{software_name} {software_version}": {}}
-    for row in results:
-        print("line 266:",row)
-        for key, value in row.asdict().items():
-            if key not in formatted_results[f"{software_name} {software_version}"]:
-                formatted_results[f"{software_name} {software_version}"][key] = []
-            formatted_results[f"{software_name} {software_version}"][key].append(value.toPython())
-
-    return formatted_results
+    #results = graph.query(query_spark)
+    #result = sparql_client.query(query_spark)  
+    result = sbom_service.execute_query(query_spark)
+    return result#
 
 
-if __name__ == '__main__':
-    app.run(debug=True)
+#if __name__ == '__main__':
+    #app.run(debug=True)
