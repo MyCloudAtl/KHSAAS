@@ -48,27 +48,6 @@ sbom_service = SBOMService(sparql_client)
 def home():
     return render_template('index.html', products=grouped_products)
 
-# @app.route('/api/softwares', methods=['GET'])
-# def get_softwares():
-#     return jsonify(grouped_products)
-
-# @app.route('/api/softwares/<software_name>/versions', methods=['GET'])
-# def get_versions_for_software(software_name):
-#     versions = grouped_products.get(software_name, [])
-#     return jsonify(versions)
-
-# @app.route('/api/sbom/<software_name>/<software_version>', methods=['GET'])
-# def get_sbom(software_name, software_version):
-#     try:
-#         sbom_data = sbom_service.get_full_sbom(software_name, software_version)
-#         return jsonify(sbom_data)
-#         # if sbom_data:
-#         #     return jsonify(json.loads(sbom_data))
-#         # else:
-#         #     return jsonify({"error": "Unable to generate SBOM"}), 500
-#     except Exception as e:
-#         logging.error(f"Error generating SBOM: {e}")
-#         return jsonify({"error": "Unable to generate SBOM"}), 500
 
 @app.route('/api/sbom/<product_name>', methods=['GET'])
 def get_details_data(product_name):

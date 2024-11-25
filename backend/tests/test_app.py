@@ -32,3 +32,4 @@ def test_api_get_dependencies_missing_params(client):
     data = response.get_json()
     assert 'description' in data
     assert data['description'] == "Missing required parameters: 'name' and 'version'"
+

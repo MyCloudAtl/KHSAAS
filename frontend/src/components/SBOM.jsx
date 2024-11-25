@@ -9,7 +9,7 @@ const SBOM = () => {
   const [error, setError] = useState("");
   const [productName, setProductName] = useState("");
 
-  const navigate = useNavigate();
+    const navigate = useNavigate();
 
   const handleProductNameChange = (e) => setProductName(e.target.value);
 

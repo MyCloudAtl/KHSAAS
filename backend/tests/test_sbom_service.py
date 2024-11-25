@@ -2,13 +2,63 @@ import pytest
 from unittest.mock import MagicMock
 from services.sbom_service import SBOMService
 
-
 # Define the sbom_service fixture to create an instance of SBOMService
 # and a mock SPARQL client
 @pytest.fixture
 def sbom_service():
     mock_sparql_client = MagicMock()
     return SBOMService(mock_sparql_client), mock_sparql_client
+
+# Test case for get_details method with results
+def test_get_details_with_results(sbom_service):
+    sbom_service_instance, mock_sparql_client = sbom_service
+
+    # Mock the SPARQL client query response
+    mock_sparql_client.query.return_value = {
+        'results': {
+            'bindings': [
+                {
+                    'dependency': {'value': 'http://example.com/dependency/1'},
+                    'version': {'value': 'http://example.com/version/1.0'},
+                    'cve': {'value': 'http://example.com/cve/1'}
+                }
+            ]
+        }
+    }
+
+    result = sbom_service_instance.get_details('TestSoftware')
+    expected_result = [{
+        'dependency': 'dependency/1',
+        'softwareVersion': 'version/1.0',
+        'vulnerability': 'cve/1'
+    }]
+    assert result == expected_result
+
+# Test case for get_details method with no results
+def test_get_details_no_results(sbom_service):
+    sbom_service_instance, mock_sparql_client = sbom_service
+
+    # Mock the SPARQL client query response with no results
+    mock_sparql_client.query.return_value = {
+        'results': {
+            'bindings': []
+        }
+    }
+
+    result = sbom_service_instance.get_details('TestSoftware')
+    expected_result = []
+    assert result == expected_result
+
+# Test case for get_details method with exception
+def test_get_details_query_exception(sbom_service):
+    sbom_service_instance, mock_sparql_client = sbom_service
+
+    # Mock the SPARQL client to raise an exception
+    mock_sparql_client.query.side_effect = Exception("Query error")
+
+    result = sbom_service_instance.get_details('TestSoftware')
+    expected_result = "Hey nothing here"
+    assert result == expected_result
 
 # Test case for get_full_sbom method with results
 def test_get_full_sbom_with_results(sbom_service):
@@ -75,3 +125,41 @@ def test_get_full_sbom_query_exception(sbom_service):
     result = sbom_service_instance.get_full_sbom('TestSoftware', '1.0')
     expected_result = "Hey nothing here"
     assert result == expected_result
+
+def test_get_vulnerabilities_with_results(sbom_service):
+    sbom_service_instance, mock_sparql_client = sbom_service
+
+    # Mock the SPARQL client query response
+    mock_sparql_client.query.return_value = {
+        'results': {
+            'bindings': [
+                {'vulnerability': {'value': 'http://example.com/vulnerability/1'}},
+                {'vulnerability': {'value': 'http://example.com/vulnerability/2'}}
+            ]
+        }
+    }
+
+    result = sbom_service_instance.get_vulnerabilities('TestSoftware', '1.0')
+    assert result == ['Formatted vulnerability 1', 'Formatted vulnerability 2']
+
+def test_get_vulnerabilities_no_results(sbom_service):
+    sbom_service_instance, mock_sparql_client = sbom_service
+
+    # Mock the SPARQL client query response with no results
+    mock_sparql_client.query.return_value = {
+        'results': {
+            'bindings': []
+        }
+    }
+
+    result = sbom_service_instance.get_vulnerabilities('TestSoftware', '1.0')
+    assert result == []
+
+def test_get_vulnerabilities_query_exception(sbom_service):
+    sbom_service_instance, mock_sparql_client = sbom_service
+
+    # Mock the SPARQL client to raise an exception
+    mock_sparql_client.query.side_effect = Exception("Query error")
+
+    result = sbom_service_instance.get_vulnerabilities('TestSoftware', '1.0')
+    assert result == ["No vulnerabilities found."]

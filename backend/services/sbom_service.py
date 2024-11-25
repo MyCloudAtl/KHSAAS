@@ -60,7 +60,7 @@ class SBOMService:
                 dependencies = []
                 for binding in results['results']['bindings']:
                     dependency_url = binding['dependency']['value']
-                    formatted_dependency = self.format_dependency(dependency_uri)
+                    formatted_dependency = self.format_dependency(dependency_url)
                     dependencies.append(formatted_dependency)
                 if dependencies:
                     logging.debug(f"Dependencies found: {dependencies}")
@@ -252,21 +252,6 @@ class SBOMService:
             return "Hey nothing here"
 
 
-    # def get_sbom(self, software_name, software_version):
-    #     try:
-    #         logging.info(f"Generating SBOM for {software_name} version {software_version}")
-    #         dependencies = self.get_dependencies(software_name, software_version)
-    #         vulnerabilities = self.get_vulnerabilities(software_name, software_version)
-    #         sbom = {
-    #             'software': software_name,
-    #             'version': software_version,
-    #             'dependencies': dependencies,
-    #             # 'vulnerabilities': vulnerabilities,
-    #         }
-    #         return sbom
-    #     except Exception as e:
-    #         logging.error(f"Error generating SBOM: {e}", exc_info=True)
-    #         return {}
 
     def build_dashboard(self, software_name):
         # Ensure that the fetch functions are correctly imported
